@@ -23,6 +23,7 @@ def _get_registry() -> Registry:
 
 
 def _make_artifact_app(kind: Kind) -> typer.Typer:
+    from capmesh.cli.remote_commands import add_push_command, add_pull_command
     artifact_app = typer.Typer(help=f"Manage {kind.value} artifacts.", no_args_is_help=True)
 
     @artifact_app.command()
@@ -117,6 +118,9 @@ def _make_artifact_app(kind: Kind) -> typer.Typer:
                 console.print("  Requires:")
                 for cap in manifest.requires:
                     console.print(f"    - {cap.capability}/{cap.contract}")
+
+    add_push_command(artifact_app, kind.value)
+    add_pull_command(artifact_app, kind.value)
 
     return artifact_app
 

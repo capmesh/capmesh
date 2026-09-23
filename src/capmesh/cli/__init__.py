@@ -7,6 +7,7 @@ from capmesh.cli.artifact_commands import (
     tag_app,
     tool_app,
 )
+from capmesh.cli.auth_commands import login_app
 from capmesh.cli.resolve_commands import providers_app, resolve_app
 from capmesh.cli.server_commands import server_app
 
@@ -24,3 +25,4 @@ app.add_typer(tag_app, name="tag")
 app.add_typer(resolve_app, name="resolve")
 app.add_typer(providers_app, name="providers")
 app.add_typer(server_app, name="server")
+app.add_typer(login_app, name="login")
