@@ -13,6 +13,15 @@ from capmesh.models.manifest import (
     Manifest,
     Metadata,
 )
+from capmesh.models.resolution import (
+    Binding,
+    CallerContext,
+    CandidateRecord,
+    PolicyDecision,
+    Resolution,
+    ResolutionTrace,
+    ResolveRequest,
+)
 
 __all__ = [
     "Kind",
@@ -28,4 +37,11 @@ __all__ = [
     "HealthCheck",
     "Manifest",
     "Metadata",
+    "Binding",
+    "CallerContext",
+    "CandidateRecord",
+    "PolicyDecision",
+    "Resolution",
+    "ResolutionTrace",
+    "ResolveRequest",
 ]

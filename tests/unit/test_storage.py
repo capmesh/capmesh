@@ -175,3 +175,11 @@ def test_rebuild_index(storage: Storage):
     # Verify searches still work after rebuild
     providers = storage.find_providers("security.code.review", "v1")
     assert len(providers) == 1
+
+
+def test_save_manifest_does_not_mutate_caller(storage: Storage):
+    manifest = _agent_manifest()
+    assert manifest.metadata.digest is None
+    storage.save_manifest(manifest)
+    # The original manifest should NOT have been mutated
+    assert manifest.metadata.digest is None

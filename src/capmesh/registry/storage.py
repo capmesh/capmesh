@@ -118,11 +118,12 @@ class Storage:
                 f"{meta.namespace}/{meta.name}:{meta.version} already exists with a different digest"
             )
 
-        # Write YAML file
-        manifest.metadata.digest = digest
+        # Work on a copy to avoid mutating the caller's object
+        stored = manifest.model_copy(deep=True)
+        stored.metadata.digest = digest
         path = self._manifest_path(meta.namespace, meta.name, meta.version)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(manifest_to_yaml(manifest), encoding="utf-8")
+        path.write_text(manifest_to_yaml(stored), encoding="utf-8")
 
         # Index in SQLite
         cursor = self._db.execute(
@@ -142,6 +143,7 @@ class Storage:
                 (artifact_id, cap.capability, cap.contract, "requires"),
             )
 
+        import json
         self._db.execute(
             "INSERT INTO governance (artifact_id, visibility, status, owner, environment) VALUES (?, ?, ?, ?, ?)",
             (
@@ -149,7 +151,7 @@ class Storage:
                 manifest.governance.visibility.value,
                 manifest.governance.status.value,
                 meta.owner,
-                ",".join(manifest.governance.environment),
+                json.dumps(manifest.governance.environment),
             ),
         )
 
