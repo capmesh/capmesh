@@ -7,3 +7,7 @@ build/
 *.db
 .venv/
 .superpowers/
+.coverage
+.pytest_cache/
+*.xml
+htmlcov/
