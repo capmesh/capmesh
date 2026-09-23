@@ -1,0 +1,27 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    framework: langgraph
+    team: quality
+  status: approved
+  visibility: public
+interface:
+  endpoint: https://langgraph-codereview.example.com
+  protocol: a2a
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: agent
+  name: langgraph-code-reviewer
+  namespace: quality
+  owner: quality-team
+  version: 2.0.0
+provides:
+  - capability: code.review
+    contract: v1
+requires:
+  - capability: repository.read
+    contract: v1
+  - capability: code.quality
+    contract: v1

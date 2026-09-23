@@ -1,0 +1,23 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    team: data
+  status: approved
+  visibility: public
+interface:
+  protocol: mcp
+  server: postgres-mcp
+  tool_name: execute_query
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  name: postgres-query
+  namespace: data
+  owner: data-team
+  version: 1.0.0
+provides:
+  - capability: data.query
+    contract: v1
+requires: []

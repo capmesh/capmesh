@@ -1,0 +1,25 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    framework: crewai
+    team: data
+  status: approved
+  visibility: public
+interface:
+  endpoint: https://crewai-data.example.com
+  protocol: a2a
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: agent
+  name: crewai-data-analyst
+  namespace: data
+  owner: data-team
+  version: 2.1.0
+provides:
+  - capability: data.analyze
+    contract: v1
+requires:
+  - capability: data.query
+    contract: v1

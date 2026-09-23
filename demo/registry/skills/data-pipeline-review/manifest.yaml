@@ -1,0 +1,27 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    team: data
+  status: approved
+  visibility: public
+interface:
+  assets: []
+  instructions: SKILL.md
+  protocol: skill
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: skill
+  name: data-pipeline-review
+  namespace: data
+  owner: data-team
+  version: 1.0.0
+provides:
+  - capability: data.pipeline.review
+    contract: v1
+requires:
+  - capability: data.query
+    contract: v1
+  - capability: data.analyze
+    contract: v1

@@ -1,0 +1,28 @@
+governance:
+  environment:
+    - production
+  labels:
+    team: sre
+  status: approved
+  visibility: public
+interface:
+  assets: []
+  instructions: SKILL.md
+  protocol: skill
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: skill
+  name: incident-triage
+  namespace: reliability
+  owner: sre-team
+  version: 1.5.0
+provides:
+  - capability: incident.triage
+    contract: v1
+requires:
+  - capability: metrics.query
+    contract: v1
+  - capability: notification.send
+    contract: v1
+  - capability: issue.create
+    contract: v1

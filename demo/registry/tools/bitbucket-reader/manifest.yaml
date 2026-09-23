@@ -1,0 +1,23 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    team: platform
+  status: approved
+  visibility: public
+interface:
+  protocol: mcp
+  server: bitbucket-mcp
+  tool_name: read_file
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  name: bitbucket-reader
+  namespace: repository
+  owner: platform-team
+  version: 1.5.0
+provides:
+  - capability: repository.read
+    contract: v1
+requires: []

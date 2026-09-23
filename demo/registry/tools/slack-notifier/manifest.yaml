@@ -1,0 +1,26 @@
+governance:
+  environment:
+    - production
+    - staging
+    - development
+  labels:
+    team: platform
+  status: approved
+  visibility: public
+interface:
+  auth_type: oauth2
+  endpoint: https://slack.example.com/api/v1
+  protocol: rest
+  request_mapping: {}
+  response_mapping: {}
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  name: slack-notifier
+  namespace: notifications
+  owner: platform-team
+  version: 1.0.0
+provides:
+  - capability: notification.send
+    contract: v1
+requires: []

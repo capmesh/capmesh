@@ -1,0 +1,23 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    framework: semantic-kernel
+    team: platform
+  status: approved
+  visibility: public
+interface:
+  endpoint: https://semantic-kernel-planner.example.com
+  protocol: a2a
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: agent
+  name: semantic-kernel-planner
+  namespace: orchestration
+  owner: platform-team
+  version: 1.0.0
+provides:
+  - capability: task.plan
+    contract: v1
+requires: []

@@ -1,0 +1,27 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    team: devops
+  status: approved
+  visibility: public
+interface:
+  auth_type: basic
+  endpoint: https://jira.example.com/rest/api/3
+  protocol: rest
+  request_mapping: {}
+  response_mapping: {}
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  name: jira-tracker
+  namespace: issues
+  owner: devops-team
+  version: 1.4.0
+provides:
+  - capability: issue.create
+    contract: v1
+  - capability: issue.update
+    contract: v1
+requires: []

@@ -1,0 +1,29 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    team: sre
+  status: approved
+  visibility: public
+interface:
+  assets: []
+  instructions: SKILL.md
+  protocol: skill
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: skill
+  name: performance-audit
+  namespace: reliability
+  owner: sre-team
+  version: 1.3.0
+provides:
+  - capability: performance.audit
+    contract: v1
+requires:
+  - capability: performance.analyze
+    contract: v1
+  - capability: metrics.query
+    contract: v1
+  - capability: notification.send
+    contract: v1

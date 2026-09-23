@@ -1,0 +1,29 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    team: security-engineering
+  status: approved
+  visibility: public
+interface:
+  assets: []
+  instructions: SKILL.md
+  protocol: skill
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: skill
+  name: security-code-review
+  namespace: security
+  owner: security-engineering
+  version: 1.2.0
+provides:
+  - capability: security.code.review
+    contract: v1
+requires:
+  - capability: repository.read
+    contract: v1
+  - capability: repository.search
+    contract: v1
+  - capability: security.scan
+    contract: v1

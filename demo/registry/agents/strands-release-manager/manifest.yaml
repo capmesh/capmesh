@@ -1,0 +1,29 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    framework: strands
+    team: devops
+  status: approved
+  visibility: public
+interface:
+  endpoint: https://strands-release.example.com
+  protocol: a2a
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: agent
+  name: strands-release-manager
+  namespace: release
+  owner: devops-team
+  version: 3.0.0
+provides:
+  - capability: release.manage
+    contract: v1
+requires:
+  - capability: deploy.execute
+    contract: v1
+  - capability: notification.send
+    contract: v1
+  - capability: issue.update
+    contract: v1

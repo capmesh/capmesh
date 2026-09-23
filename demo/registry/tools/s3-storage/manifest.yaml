@@ -1,0 +1,25 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    team: platform
+  status: approved
+  visibility: public
+interface:
+  auth_type: iam
+  endpoint: https://s3.amazonaws.com
+  protocol: rest
+  request_mapping: {}
+  response_mapping: {}
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  name: s3-storage
+  namespace: storage
+  owner: platform-team
+  version: 1.1.0
+provides:
+  - capability: artifact.store
+    contract: v1
+requires: []

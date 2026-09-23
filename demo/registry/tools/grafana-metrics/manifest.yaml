@@ -1,0 +1,26 @@
+governance:
+  environment:
+    - production
+    - staging
+    - development
+  labels:
+    team: sre
+  status: approved
+  visibility: public
+interface:
+  auth_type: apikey
+  endpoint: https://grafana.example.com/api
+  protocol: rest
+  request_mapping: {}
+  response_mapping: {}
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  name: grafana-metrics
+  namespace: observability
+  owner: sre-team
+  version: 1.0.0
+provides:
+  - capability: metrics.query
+    contract: v1
+requires: []

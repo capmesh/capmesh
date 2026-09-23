@@ -1,0 +1,25 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    team: quality
+  status: approved
+  visibility: public
+interface:
+  auth_type: bearer
+  endpoint: https://sonarqube.example.com/api
+  protocol: rest
+  request_mapping: {}
+  response_mapping: {}
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  name: sonarqube
+  namespace: quality
+  owner: quality-team
+  version: 1.2.0
+provides:
+  - capability: code.quality
+    contract: v1
+requires: []

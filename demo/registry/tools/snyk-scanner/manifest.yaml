@@ -1,0 +1,24 @@
+governance:
+  environment:
+    - production
+    - staging
+    - development
+  labels:
+    team: security
+  status: approved
+  visibility: public
+interface:
+  protocol: mcp
+  server: snyk-mcp
+  tool_name: scan_project
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  name: snyk-scanner
+  namespace: security
+  owner: security-team
+  version: 1.3.0
+provides:
+  - capability: security.scan
+    contract: v1
+requires: []

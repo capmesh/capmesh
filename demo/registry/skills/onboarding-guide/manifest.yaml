@@ -1,0 +1,28 @@
+governance:
+  environment:
+    - production
+    - staging
+    - development
+  labels:
+    team: developer-experience
+  status: approved
+  visibility: public
+interface:
+  assets: []
+  instructions: SKILL.md
+  protocol: skill
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: skill
+  name: onboarding-guide
+  namespace: developer-experience
+  owner: developer-experience
+  version: 1.0.0
+provides:
+  - capability: onboarding.guide
+    contract: v1
+requires:
+  - capability: repository.read
+    contract: v1
+  - capability: documentation.generate
+    contract: v1

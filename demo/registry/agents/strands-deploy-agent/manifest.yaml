@@ -1,0 +1,25 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    framework: strands
+    team: devops
+  status: approved
+  visibility: public
+interface:
+  endpoint: https://strands-deploy.example.com
+  protocol: a2a
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: agent
+  name: strands-deploy-agent
+  namespace: deployment
+  owner: devops-team
+  version: 2.2.0
+provides:
+  - capability: deploy.execute
+    contract: v1
+requires:
+  - capability: artifact.store
+    contract: v1

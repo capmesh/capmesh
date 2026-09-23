@@ -1,0 +1,29 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    team: platform
+  status: approved
+  visibility: public
+interface:
+  assets: []
+  instructions: SKILL.md
+  protocol: skill
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: skill
+  name: pr-review
+  namespace: devops
+  owner: platform-team
+  version: 2.0.0
+provides:
+  - capability: pr.review
+    contract: v1
+requires:
+  - capability: repository.read
+    contract: v1
+  - capability: code.review
+    contract: v1
+  - capability: security.code.review
+    contract: v1

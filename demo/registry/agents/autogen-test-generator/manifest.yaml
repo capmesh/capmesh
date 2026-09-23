@@ -1,0 +1,26 @@
+governance:
+  environment:
+    - production
+    - staging
+    - development
+  labels:
+    framework: autogen
+    team: qa
+  status: approved
+  visibility: public
+interface:
+  endpoint: https://autogen-test.example.com
+  protocol: a2a
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: agent
+  name: autogen-test-generator
+  namespace: testing
+  owner: qa-team
+  version: 1.5.0
+provides:
+  - capability: test.generate
+    contract: v1
+requires:
+  - capability: repository.read
+    contract: v1

@@ -1,0 +1,27 @@
+governance:
+  environment:
+    - production
+    - staging
+  labels:
+    team: devops
+  status: approved
+  visibility: public
+interface:
+  auth_type: apikey
+  endpoint: https://api.linear.app/graphql
+  protocol: rest
+  request_mapping: {}
+  response_mapping: {}
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  name: linear-tracker
+  namespace: issues
+  owner: devops-team
+  version: 2.0.0
+provides:
+  - capability: issue.create
+    contract: v1
+  - capability: issue.update
+    contract: v1
+requires: []
