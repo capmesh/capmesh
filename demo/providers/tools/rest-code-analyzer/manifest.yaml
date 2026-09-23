@@ -1,0 +1,24 @@
+governance:
+  environment: []
+  labels: {}
+  status: approved
+  visibility: public
+interface:
+  auth_type: bearer
+  endpoint: https://analyzer.example.com/api/v1/analyze
+  protocol: rest
+  request_mapping:
+    input: "$.body"
+  response_mapping:
+    output: "$.result"
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  name: code-analyzer
+  namespace: analysis
+  owner: platform-team
+  version: "1.8.0"
+provides:
+  - capability: code.analyze
+    contract: v1
+requires: []
