@@ -7,6 +7,7 @@ from capmesh.cli.artifact_commands import (
     tag_app,
     tool_app,
 )
+from capmesh.cli.resolve_commands import providers_app, resolve_app
 
 app = typer.Typer(
     name="capmesh",
@@ -19,3 +20,5 @@ app.add_typer(tool_app, name="tool")
 app.add_typer(agent_app, name="agent")
 app.add_typer(search_app, name="search")
 app.add_typer(tag_app, name="tag")
+app.add_typer(resolve_app, name="resolve")
+app.add_typer(providers_app, name="providers")
