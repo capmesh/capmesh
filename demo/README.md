@@ -19,7 +19,8 @@ demo/
 │           └── SKILL.md
 ├── 01_build.py         # Validate manifests + compute digests
 ├── 02_register.py      # Register all providers into the registry
-└── 03_resolve.py       # Resolve, use, swap, trace — full demo
+├── 03_resolve.py       # Resolve, use, swap, trace — full demo
+└── 04_benefits.py      # Side-by-side: WITHOUT vs WITH, then change everything
 ```
 
 ## Run
@@ -28,6 +29,7 @@ demo/
 python demo/01_build.py       # Build: validate YAMLs, compute digests
 python demo/02_register.py    # Register: store in local registry
 python demo/03_resolve.py     # Resolve: see CapMesh in action
+python demo/04_benefits.py    # Benefits: same task, two ways, then requirements change
 ```
 
 ## What you'll see
@@ -50,3 +52,9 @@ python demo/03_resolve.py     # Resolve: see CapMesh in action
 - Skill dual binding (auto-resolves tool dependencies)
 - Policy enforcement (visibility, environment)
 - Full audit trail of every resolution
+
+**Step 4 — Benefits** (the real payoff)
+- Same security review task done WITHOUT and WITH CapMesh
+- Then 3 requirement changes hit: swap GitHub->GitLab, upgrade scanner, restrict access
+- WITHOUT: 3 code changes, 3 redeployments, days of work
+- WITH: 0 code changes, 0 redeployments, 30 seconds each
