@@ -15,6 +15,7 @@ from capmesh.models.resolution import (
     ResolutionTrace,
     ResolveRequest,
 )
+from capmesh.adapters.registry import AdapterRegistry
 from capmesh.policy.engine import PolicyEngine
 from capmesh.registry.registry import Registry
 from capmesh.telemetry.traces import TraceStore
@@ -30,10 +31,12 @@ class Resolver:
         registry: Registry,
         policy_engine: PolicyEngine,
         trace_store: TraceStore | None = None,
+        adapter_registry: AdapterRegistry | None = None,
     ) -> None:
         self._registry = registry
         self._policy = policy_engine
         self._trace_store = trace_store
+        self._adapter_registry = adapter_registry
 
     def resolve(self, request: ResolveRequest) -> Resolution:
         start = time.monotonic()
@@ -118,13 +121,16 @@ class Resolver:
         selected_manifest, selected_protocol = approved[0]
         meta = selected_manifest.metadata
 
-        # Step 8: Build binding (placeholder — extract connection info)
-        binding = Binding(
-            provider=f"{meta.namespace}/{meta.name}:{meta.version}",
-            protocol=selected_protocol,
-            connection=self._extract_connection(selected_manifest),
-            trace_id=trace_id,
-        )
+        # Step 8: Build binding via adapter registry (or fallback for backward compat)
+        if self._adapter_registry:
+            binding = self._adapter_registry.bind(selected_manifest, trace_id)
+        else:
+            binding = Binding(
+                provider=f"{meta.namespace}/{meta.name}:{meta.version}",
+                protocol=selected_protocol,
+                connection=self._extract_connection(selected_manifest),
+                trace_id=trace_id,
+            )
 
         elapsed = time.monotonic() - start
 

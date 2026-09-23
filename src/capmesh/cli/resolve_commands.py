@@ -9,6 +9,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from capmesh.adapters.defaults import default_adapter_registry
 from capmesh.models.resolution import CallerContext, ResolveRequest
 from capmesh.policy import default_policy_engine
 from capmesh.registry import Registry
@@ -36,6 +37,8 @@ def _get_resolver() -> tuple[Resolver, TraceStore]:
     trace_store.init_schema()
 
     resolver = Resolver(registry=registry, policy_engine=policy, trace_store=trace_store)
+    adapter_reg = default_adapter_registry(resolver=resolver)
+    resolver._adapter_registry = adapter_reg
     return resolver, trace_store
 
 
