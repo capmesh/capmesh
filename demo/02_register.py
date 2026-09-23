@@ -79,5 +79,5 @@ for m in registered:
                 print(f"      -> {name}")
             seen.add(key)
 print()
-print("  Registry built. Run 02_resolve.py to see it in action.")
+print("  Registry built. Run 03_resolve.py to see it in action.")
 print()
