@@ -1,0 +1,22 @@
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  namespace: analysis
+  name: code-analyzer
+  version: "1.8.0"
+  owner: platform-team
+provides:
+  - capability: code.analyze
+    contract: v1
+requires: []
+interface:
+  protocol: rest
+  endpoint: https://analyzer.example.com/api/v1/analyze
+  auth_type: bearer
+  request_mapping:
+    input: "$.body"
+  response_mapping:
+    output: "$.result"
+governance:
+  visibility: public
+  status: approved

@@ -1,0 +1,20 @@
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  namespace: repository
+  name: github-reader
+  version: "1.0.0"
+  owner: platform-team
+provides:
+  - capability: repository.read
+    contract: v1
+  - capability: repository.search
+    contract: v1
+requires: []
+interface:
+  protocol: mcp
+  server: github-mcp
+  tool_name: read_file
+governance:
+  visibility: public
+  status: approved
