@@ -566,7 +566,7 @@ From the design document:
 - Reject duplicate immutable version pushes with different digests
 - A Skill can declare required capabilities without naming a concrete Tool provider
 - The Resolver can bind a Skill's required capability to a compatible Tool/MCP provider
-- Claude adapter loads Skill content and Tool bindings separately
+- Framework adapter loads Skill content and Tool bindings separately
 
 ---
 
