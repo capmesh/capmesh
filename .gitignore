@@ -11,3 +11,4 @@ build/
 .pytest_cache/
 *.xml
 htmlcov/
+docs/superpowers/
