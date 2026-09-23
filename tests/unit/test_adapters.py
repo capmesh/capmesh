@@ -80,3 +80,58 @@ def test_rest_bind():
     assert binding.connection["endpoint"] == "https://api.example/v1"
     assert binding.connection["auth_type"] == "bearer"
     assert binding.connection["request_mapping"] == {"input": "$.body"}
+
+
+# --- Skill ---
+
+from capmesh.adapters.skills import SkillBindingAdapter
+
+
+def test_skill_supports():
+    adapter = SkillBindingAdapter()
+    iface = SkillInterface(protocol="skill", instructions="SKILL.md", assets=["templates/"])
+    assert adapter.supports(_manifest(iface))
+    assert not adapter.supports(_manifest(A2AInterface(protocol="a2a", endpoint="x")))
+
+
+def test_skill_bind_without_resolver():
+    adapter = SkillBindingAdapter()
+    iface = SkillInterface(protocol="skill", instructions="SKILL.md", assets=["templates/"])
+    m = _manifest(iface)
+    binding = adapter.bind(m, "res_test")
+    assert binding.protocol == "skill"
+    assert binding.connection["instructions"] == "SKILL.md"
+    assert binding.connection["assets"] == ["templates/"]
+    assert binding.connection["tool_bindings"] == []
+
+
+def test_skill_bind_with_requires(tmp_path):
+    from capmesh.registry import Registry
+    from capmesh.policy import default_policy_engine
+    from capmesh.resolver import Resolver
+
+    registry = Registry(root=tmp_path)
+    # Register a tool that provides repository.read
+    tool = Manifest(
+        metadata=Metadata(kind=Kind.TOOL, namespace="repo", name="gh-reader", version="1.0.0", owner="o"),
+        provides=[CapabilityRef(capability="repository.read", contract="v1")],
+        requires=[], interface=MCPInterface(protocol="mcp", server="gh-mcp", tool_name="read"),
+        governance=Governance(visibility=Visibility.PUBLIC, status=Status.APPROVED),
+    )
+    registry.register(tool)
+
+    resolver = Resolver(registry=registry, policy_engine=default_policy_engine())
+    adapter = SkillBindingAdapter(resolver=resolver)
+
+    skill = Manifest(
+        metadata=Metadata(kind=Kind.SKILL, namespace="sec", name="review-skill", version="1.0.0", owner="o"),
+        provides=[CapabilityRef(capability="security.code.review", contract="v1")],
+        requires=[CapabilityRef(capability="repository.read", contract="v1")],
+        interface=SkillInterface(protocol="skill", instructions="SKILL.md", assets=[]),
+        governance=Governance(visibility=Visibility.PUBLIC, status=Status.APPROVED),
+    )
+
+    binding = adapter.bind(skill, "res_test")
+    assert binding.protocol == "skill"
+    assert len(binding.connection["tool_bindings"]) == 1
+    assert binding.connection["tool_bindings"][0]["protocol"] == "mcp"
