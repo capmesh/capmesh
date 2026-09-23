@@ -6,55 +6,69 @@
 demo/
 ├── providers/                              # YAML manifests (what you write)
 │   ├── tools/
-│   │   ├── github-reader/manifest.yaml     # MCP tool — repository.read
-│   │   ├── gitlab-reader/manifest.yaml     # MCP tool — same capability, different vendor
-│   │   └── rest-code-analyzer/manifest.yaml # REST tool — code.analyze
+│   │   ├── github-reader/manifest.yaml     # MCP tool
+│   │   ├── gitlab-reader/manifest.yaml     # MCP tool (same capability, v2)
+│   │   └── rest-code-analyzer/manifest.yaml # REST tool
 │   ├── agents/
-│   │   ├── langgraph-security-reviewer/    # LangGraph agent — security.code.review
-│   │   ├── crewai-security-reviewer/       # CrewAI agent — same capability, different framework
-│   │   └── strands-perf-analyzer/          # Strands agent — performance.analyze
+│   │   ├── langgraph-security-reviewer/    # LangGraph agent
+│   │   ├── crewai-security-reviewer/       # CrewAI agent
+│   │   └── strands-perf-analyzer/          # Strands agent
 │   └── skills/
-│       └── security-code-review/           # Skill + SKILL.md — declares deps, not tools
-│           ├── manifest.yaml
-│           └── SKILL.md
-├── 01_build.py         # Validate manifests + compute digests
-├── 02_register.py      # Register all providers into the registry
-├── 03_resolve.py       # Resolve, use, swap, trace — full demo
-└── 04_benefits.py      # Side-by-side: WITHOUT vs WITH, then change everything
+│       └── security-code-review/           # Skill + SKILL.md
+├── 01_build.sh         # capmesh build — validate + digest
+├── 02_register.sh      # capmesh register — store in registry
+├── 03_resolve.sh       # capmesh resolve — discover + bind
+├── 04_benefits.sh      # Side-by-side: WITHOUT vs WITH CapMesh
+└── 04_benefits.py      # Orchestrator code showing real results
 ```
 
 ## Run
 
 ```bash
-python demo/01_build.py       # Build: validate YAMLs, compute digests
-python demo/02_register.py    # Register: store in local registry
-python demo/03_resolve.py     # Resolve: see CapMesh in action
-python demo/04_benefits.py    # Benefits: same task, two ways, then requirements change
+export CAPMESH_ROOT=$(mktemp -d)    # fresh registry
+
+./demo/01_build.sh                  # Build: validate YAMLs, compute digests
+./demo/02_register.sh               # Register: store in local registry
+./demo/03_resolve.sh                # Resolve: discover + bind capabilities
+./demo/04_benefits.sh               # Benefits: same task, two ways, then change everything
+```
+
+## The Docker Analogy
+
+```
+docker build      →  capmesh tool build / capmesh agent build / capmesh skill build
+docker push       →  capmesh tool push / capmesh agent push
+docker pull       →  capmesh tool pull / capmesh agent pull
+docker images     →  capmesh search
+docker inspect    →  capmesh agent inspect
+docker tag        →  capmesh tag
+docker login      →  capmesh login
+
+# What Docker doesn't have — CapMesh's differentiator:
+capmesh resolve   →  "I need X capability" → best provider
+capmesh providers →  "Who provides X?"
+capmesh graph     →  "What does X depend on?"
 ```
 
 ## What you'll see
 
-**Step 1 — Build** (like `docker build`)
+**Step 1 — Build** (`capmesh build`)
 - Validates every manifest YAML
-- Computes sha256 digests
-- Reports errors if any manifest is malformed
+- Computes sha256 digests (like Docker image digests)
+- Reports errors if malformed
 
-**Step 2 — Register** (like `docker load` / `docker push`)
-- Stores providers in the local registry (YAML files + SQLite index)
-- Shows available capabilities and which providers serve them
+**Step 2 — Register** (`capmesh register` + `capmesh search`)
+- Stores providers in registry (YAML files + SQLite index)
+- Search, inspect, tag — all via CLI
 
-**Step 3 — Resolve** (what makes CapMesh different)
-- Orchestrator asks for capabilities, gets the best provider
-- Real security scan with findings and verdict
-- Cross-framework discovery (LangGraph, CrewAI, Strands)
-- Dynamic provider addition at runtime
-- Provider swap with zero code changes
-- Skill dual binding (auto-resolves tool dependencies)
-- Policy enforcement (visibility, environment)
-- Full audit trail of every resolution
+**Step 3 — Resolve** (`capmesh resolve`)
+- Ask for a capability, get the best provider
+- Full resolution trace showing candidates + selection logic
+- JSON output for programmatic use
+- Version constraints
 
 **Step 4 — Benefits** (the real payoff)
-- Same security review task done WITHOUT and WITH CapMesh
-- Then 3 requirement changes hit: swap GitHub->GitLab, upgrade scanner, restrict access
+- Same security review: WITHOUT CapMesh (hardcoded) vs WITH (dynamic)
+- 3 requirement changes: swap GitHub→GitLab, upgrade scanner, restrict access
 - WITHOUT: 3 code changes, 3 redeployments, days of work
 - WITH: 0 code changes, 0 redeployments, 30 seconds each
