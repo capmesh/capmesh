@@ -18,6 +18,7 @@ from capmesh.models.resolution import (
 from capmesh.adapters.registry import AdapterRegistry
 from capmesh.policy.engine import PolicyEngine
 from capmesh.registry.registry import Registry
+from capmesh.resolver.discovery import CapabilityDiscovery
 from capmesh.telemetry.traces import TraceStore
 
 
@@ -37,6 +38,44 @@ class Resolver:
         self._policy = policy_engine
         self._trace_store = trace_store
         self._adapter_registry = adapter_registry
+        self._discovery = CapabilityDiscovery(registry)
+
+    def need(self, query: str, caller: CallerContext | None = None,
+             contract: str = "v1", version_constraint: str | None = None) -> Resolution:
+        """Resolve a capability using natural language.
+
+        Examples:
+            resolver.need("read code from a repo")
+            resolver.need("scan for security issues")
+            resolver.need("notify the team on slack")
+        """
+        if caller is None:
+            caller = CallerContext(identity="anonymous")
+
+        # Try exact match first
+        providers = self._registry.providers_for(query, contract)
+        if providers:
+            return self.resolve(ResolveRequest(
+                capability=query, contract=contract,
+                caller=caller, version_constraint=version_constraint,
+            ))
+
+        # Natural language discovery
+        result = self._discovery.discover_one(query, contract)
+        if result is None:
+            raise ResolutionError(
+                f"no_match: could not find a capability matching '{query}'"
+            )
+
+        return self.resolve(ResolveRequest(
+            capability=result.capability, contract=contract,
+            caller=caller, version_constraint=version_constraint,
+        ))
+
+    def discover(self, query: str, contract: str = "v1", limit: int = 5):
+        """Search for capabilities matching a natural language query.
+        Returns a list of DiscoveryResult objects."""
+        return self._discovery.discover(query, contract, limit)
 
     def resolve(self, request: ResolveRequest) -> Resolution:
         start = time.monotonic()

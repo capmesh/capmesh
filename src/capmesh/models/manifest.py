@@ -9,6 +9,7 @@ from capmesh.models.interfaces import Interface
 class CapabilityRef(BaseModel):
     capability: str
     contract: str
+    description: str = ""
 
 
 class Governance(BaseModel):
