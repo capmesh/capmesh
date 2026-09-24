@@ -180,7 +180,7 @@ class CapMesh:
         return f"<CapMesh: {count} providers registered>"
 
 
-def connect(root: str | None = None, server: str | None = None) -> CapMesh:
+def connect(root: str | None = None, server: str | None = None, telemetry: bool = False) -> CapMesh:
     """Connect to CapMesh. One line to get started.
 
     Args:
@@ -220,5 +220,12 @@ def connect(root: str | None = None, server: str | None = None) -> CapMesh:
     )
     adapter_reg = default_adapter_registry(resolver=resolver)
     resolver._adapter_registry = adapter_reg
+
+    if telemetry:
+        try:
+            from capmesh.telemetry.otel import OtelInstrumentor
+            OtelInstrumentor().instrument(resolver)
+        except ImportError:
+            pass  # opentelemetry not installed
 
     return CapMesh(resolver=resolver, registry=registry)
