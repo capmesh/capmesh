@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CapMesh — Service Discovery for the Agentic World</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --surface2: #1e1e1e;
+            --border: #2a2a2a;
+            --text: #e0e0e0;
+            --text-dim: #888;
+            --accent: #4fc3f7;
+            --accent2: #81c784;
+            --accent3: #ffb74d;
+            --danger: #ef5350;
+            --code-bg: #1a1a2e;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg); color: var(--text);
+            line-height: 1.7; max-width: 900px; margin: 0 auto; padding: 40px 24px;
+        }
+        h1 { font-size: 2.5em; margin: 40px 0 8px; color: var(--accent); }
+        h2 { font-size: 1.6em; margin: 60px 0 16px; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        h3 { font-size: 1.2em; margin: 30px 0 12px; color: var(--accent2); }
+        p { margin: 12px 0; }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code {
+            background: var(--code-bg); padding: 2px 6px; border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.9em;
+        }
+        pre {
+            background: var(--code-bg); padding: 20px; border-radius: 8px;
+            overflow-x: auto; margin: 16px 0; border: 1px solid var(--border);
+        }
+        pre code { background: none; padding: 0; }
+        .hero {
+            text-align: center; padding: 60px 0 40px;
+            border-bottom: 1px solid var(--border); margin-bottom: 40px;
+        }
+        .hero h1 { font-size: 3em; margin-bottom: 16px; }
+        .hero .tagline { font-size: 1.3em; color: var(--text-dim); margin-bottom: 24px; }
+        .hero .oneliner { font-size: 1.1em; color: var(--accent2); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+        @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 24px;
+        }
+        .card h4 { color: var(--accent); margin-bottom: 8px; font-size: 1.05em; }
+        .card p { color: var(--text-dim); font-size: 0.95em; }
+        .comparison {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 20px 0;
+            border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+        }
+        .comparison .col { padding: 24px; }
+        .comparison .col:first-child { background: #1a0a0a; border-right: 1px solid var(--border); }
+        .comparison .col:last-child { background: #0a1a0a; }
+        .comparison h4 { margin-bottom: 12px; }
+        .comparison .bad { color: var(--danger); }
+        .comparison .good { color: var(--accent2); }
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+        th { color: var(--accent); font-weight: 600; }
+        .diagram {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 24px; margin: 20px 0;
+            font-family: monospace; white-space: pre; line-height: 1.4;
+            color: var(--text-dim); overflow-x: auto;
+        }
+        .highlight { color: var(--accent); }
+        .highlight2 { color: var(--accent2); }
+        .highlight3 { color: var(--accent3); }
+        .warn { color: var(--danger); }
+        .section-num {
+            display: inline-block; background: var(--accent); color: var(--bg);
+            width: 28px; height: 28px; border-radius: 50%; text-align: center;
+            line-height: 28px; font-weight: 700; font-size: 0.85em; margin-right: 8px;
+        }
+        .benefit-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin: 20px 0; }
+        @media (max-width: 700px) { .benefit-grid { grid-template-columns: 1fr; } }
+        .benefit-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 20px; text-align: center;
+        }
+        .benefit-card .icon { font-size: 2em; margin-bottom: 8px; }
+        .benefit-card h4 { color: var(--accent2); margin-bottom: 6px; }
+        .benefit-card p { color: var(--text-dim); font-size: 0.9em; }
+        .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin: 20px 0; }
+        .toc a { display: block; padding: 4px 0; color: var(--text-dim); }
+        .toc a:hover { color: var(--accent); }
+        .callout {
+            background: var(--surface2); border-left: 4px solid var(--accent);
+            padding: 16px 20px; margin: 20px 0; border-radius: 0 8px 8px 0;
+        }
+        .callout.warn-box { border-left-color: var(--danger); }
+        .callout.success-box { border-left-color: var(--accent2); }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>CapMesh</h1>
+    <p class="tagline">Service Discovery for the Agentic World</p>
+    <p class="oneliner">Dynamically discover and bind Agents, Skills and Tools by capability.</p>
+    <p style="margin-top: 20px;">
+        <a href="https://github.com/capmesh/capmesh">GitHub</a> &nbsp;|&nbsp;
+        <code>pip install capmesh</code>
+    </p>
+</div>
+
+<div class="toc">
+    <strong>Contents</strong>
+    <a href="#why">1. Why CapMesh?</a>
+    <a href="#principles">2. Design Principles</a>
+    <a href="#architecture">3. Architecture</a>
+    <a href="#how-it-works">4. How It Works</a>
+    <a href="#mcp-integration">5. MCP Server Integration</a>
+    <a href="#natural-language">6. Natural Language Discovery</a>
+    <a href="#governance">7. Security &amp; Governance</a>
+    <a href="#runtime">8. Runtime &amp; Production</a>
+    <a href="#benefits">9. Benefits</a>
+    <a href="#getting-started">10. Getting Started</a>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="why"><span class="section-num">1</span> Why CapMesh?</h2>
+
+<h3>The Problem</h3>
+
+<p>Every agentic application today hardcodes its tools, agents, and skills:</p>
+
+<div class="comparison">
+    <div class="col">
+        <h4 class="bad">Without CapMesh (today)</h4>
+<pre><code>from tools.github import GitHubReader
+from tools.snyk import SnykScanner
+from agents.langgraph import SecurityAgent
+
+repo = GitHubReader()        # HARDCODED
+scanner = SnykScanner()      # HARDCODED
+agent = SecurityAgent()      # HARDCODED</code></pre>
+        <p>Change any tool = change code, update tests, redeploy.</p>
+    </div>
+    <div class="col">
+        <h4 class="good">With CapMesh</h4>
+<pre><code>binding = resolver.need("read a repository")
+# -> GitLab, GitHub, Bitbucket — whatever is best
+
+binding = resolver.need("security scan")
+# -> Snyk, Semgrep — whatever is approved
+
+binding = resolver.need("notify the team")
+# -> Slack, Teams — whatever is configured</code></pre>
+        <p>Swap tools = one registry command. Zero code changes.</p>
+    </div>
+</div>
+
+<h3>What happens when requirements change?</h3>
+
+<table>
+    <tr><th>Change</th><th>Without CapMesh</th><th>With CapMesh</th></tr>
+    <tr><td>Swap GitHub for GitLab</td><td class="warn">2-3 days (code + tests + deploy)</td><td class="highlight2">30 seconds (register new provider)</td></tr>
+    <tr><td>Upgrade Snyk to Semgrep</td><td class="warn">1-2 days</td><td class="highlight2">30 seconds</td></tr>
+    <tr><td>Restrict intern access</td><td class="warn">Days (middleware + ACLs)</td><td class="highlight2">1 YAML field</td></tr>
+    <tr><td>Audit what tools were used</td><td class="warn">Not possible</td><td class="highlight2">Automatic (every resolution traced)</td></tr>
+    <tr><td>Add new capability at runtime</td><td class="warn">Impossible without restart</td><td class="highlight2">Register + discover instantly</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="principles"><span class="section-num">2</span> Design Principles</h2>
+
+<div class="grid">
+    <div class="card">
+        <h4>Capability-First</h4>
+        <p>Consumers express WHAT they need, not WHO provides it. CapMesh discovers the best provider.</p>
+    </div>
+    <div class="card">
+        <h4>Framework-Agnostic</h4>
+        <p>LangGraph, CrewAI, Strands, AutoGen, Semantic Kernel — all register and resolve through the same API. Framework is metadata, not contract.</p>
+    </div>
+    <div class="card">
+        <h4>Compose, Don't Replace</h4>
+        <p>CapMesh sits alongside A2A, MCP, and Agent Skills. It doesn't replace them — it discovers which one to use.</p>
+    </div>
+    <div class="card">
+        <h4>Docker-Inspired Artifact Plane</h4>
+        <p>Build, push, pull, tag, inspect — same mental model as Docker, but for agents, tools, and skills.</p>
+    </div>
+    <div class="card">
+        <h4>Deterministic Resolution</h4>
+        <p>Highest semver wins. Exact contract match. No ML ranking in V1 — predictable and auditable.</p>
+    </div>
+    <div class="card">
+        <h4>Governance Built-In</h4>
+        <p>Approval status, visibility, environment isolation, version pinning, immutable digests — all in the manifest YAML.</p>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="architecture"><span class="section-num">3</span> Architecture</h2>
+
+<h3>Two-Plane Architecture</h3>
+
+<div class="card">
+    <h4>Artifact Plane (Docker-inspired)</h4>
+    <p>Build, register, push, pull, tag, inspect. Manages the lifecycle of providers as versioned, immutable artifacts with sha256 digests.</p>
+</div>
+<br>
+<div class="card">
+    <h4>Capability Plane (CapMesh differentiator)</h4>
+    <p>Resolve, discover, bind. Maps capability needs to providers through a deterministic pipeline: find candidates &rarr; policy &rarr; version &rarr; select &rarr; bind &rarr; trace.</p>
+</div>
+
+<h3>System Diagram</h3>
+
+<div class="diagram"><span class="highlight">Your Agent App</span>              <span class="highlight2">CapMesh Server</span>              <span class="highlight3">Providers</span>
++------------------+       +------------------+       +------------------+
+|                  |       |                  |       |                  |
+|  POST /v1/resolve| ----> |  Registry        |       |  MCP servers     |
+|  {capability: X} |       |  Resolver        |       |  A2A agents      |
+|                  | <---- |  Policy Engine   |       |  REST APIs       |
+|  {provider,      |       |  Trace Store     |       |  Skills          |
+|   protocol,      |       |                  |       |                  |
+|   endpoint}      |       +--------+---------+       +------------------+
+|                  |                |
++------+-----------+         SQLite + YAML
+       |                    (local storage)
+       v
+ Call the provider
+ using returned binding</div>
+
+<h3>Three Provider Types</h3>
+
+<table>
+    <tr><th>Type</th><th>Protocol</th><th>Interface</th><th>Example</th></tr>
+    <tr><td><strong>Tool</strong></td><td>MCP / REST</td><td>Server name, endpoint, auth</td><td>GitHub MCP server, SonarQube REST API</td></tr>
+    <tr><td><strong>Agent</strong></td><td>A2A</td><td>Agent endpoint URL</td><td>LangGraph security reviewer, CrewAI data analyst</td></tr>
+    <tr><td><strong>Skill</strong></td><td>Skill</td><td>SKILL.md + auto-resolved tool deps</td><td>Security code review procedure</td></tr>
+</table>
+
+<h3>Resolver Pipeline (9 Steps)</h3>
+
+<div class="card">
+<pre style="background:none;border:none;padding:0;margin:0"><code>1. <span class="highlight">Find candidates</span>     — registry.providers_for(capability, contract)
+2. Filter revoked        — governance status check
+3. Health check          — cached health status (stub in V1)
+4. Contract match        — exact contract version (v1 never matches v2)
+5. <span class="highlight2">Apply policy</span>         — visibility, environment, status rules
+6. Version constraint    — semver filtering (>=2.0,<3.0)
+7. <span class="highlight3">Select best</span>          — highest semver among approved candidates
+8. Build binding         — protocol-specific connection via adapter
+9. Record trace          — full audit trail in SQLite</code></pre>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="how-it-works"><span class="section-num">4</span> How It Works</h2>
+
+<h3>Step 1: Write a manifest</h3>
+
+<p>A manifest is a YAML file describing what a provider offers, how to connect to it, and who controls it.</p>
+
+<pre><code># Agent manifest — a security reviewer built with CrewAI
+governance:
+  status: approved
+  visibility: public
+  environment: [production, staging]
+  labels:
+    framework: crewai
+interface:
+  protocol: a2a
+  endpoint: https://crewai-security.example.com
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: agent
+  name: crewai-security-reviewer
+  namespace: security
+  owner: security-engineering
+  version: "3.1.0"
+provides:
+  - capability: security.code.review
+    contract: v1
+    description: Review code for security vulnerabilities
+requires:
+  - capability: repository.read
+    contract: v1</code></pre>
+
+<div class="callout">
+    <strong>Key insight:</strong> The manifest says <code>requires: repository.read</code> — not "requires GitHub" or "requires GitLab." The specific tool is resolved at bind time.
+</div>
+
+<h3>Step 2: Build and register</h3>
+
+<pre><code>$ capmesh agent build --directory ./my-agent/
+Valid agent manifest
+  Name:    security/crewai-security-reviewer
+  Version: 3.1.0
+  Digest:  sha256:3f9f55a43b3cf6fa...
+
+$ capmesh agent register --file ./my-agent/manifest.yaml
+Registered security/crewai-security-reviewer:3.1.0</code></pre>
+
+<h3>Step 3: Agents discover and use capabilities</h3>
+
+<pre><code># Natural language
+result = resolver.need("scan for security issues")
+
+# Or exact capability ID
+result = resolver.resolve(ResolveRequest(
+    capability="security.code.review",
+    contract="v1",
+    caller=CallerContext(identity="my-pipeline"),
+))
+
+# Use the binding
+print(result.binding.protocol)     # "a2a"
+print(result.binding.connection)   # {"endpoint": "https://crewai-security.example.com"}
+# Call the provider directly using A2A/MCP/REST protocol</code></pre>
+
+<h3>Step 4: Everything is traced</h3>
+
+<pre><code>$ capmesh resolve security.code.review --trace
+
+Resolved security.code.review/v1
+  Provider:  security/crewai-security-reviewer:3.1.0
+  Protocol:  a2a
+  Trace:     res_8444e343826b
+
+Resolution Trace
+  Candidates: 3
+    [PASS] security/crewai-security-reviewer:3.1.0
+    [PASS] security/langgraph-security-reviewer:2.4.0
+    [PASS] security/security-code-review-skill:1.2.0
+  Selected: crewai-security-reviewer:3.1.0 (highest semver)
+  Resolution: 16 ms</code></pre>
+
+<!-- ============================================================ -->
+<h2 id="mcp-integration"><span class="section-num">5</span> MCP Server Integration</h2>
+
+<div class="callout success-box">
+    <strong>CapMesh does NOT replace MCP servers.</strong> It sits in front of them — telling agents <em>which</em> MCP server to use, based on capability, version, policy, and environment.
+</div>
+
+<div class="comparison">
+    <div class="col">
+        <h4 class="bad">Today: MCP configs hardcoded</h4>
+<pre><code># Every agent has its own config
+mcp_config = {
+    "server": "github-mcp",   # hardcoded
+    "tool": "read_file"       # hardcoded
+}
+result = mcp_client.call(mcp_config)</code></pre>
+        <p>No central registry. No access control. No audit trail. Swapping = updating every agent's config.</p>
+    </div>
+    <div class="col">
+        <h4 class="good">With CapMesh: MCP servers registered</h4>
+<pre><code># Agent asks for capability
+binding = resolver.need("read a repository")
+# binding.connection = {
+#   "server": "gitlab-mcp",
+#   "tool_name": "read_file"
+# }
+result = mcp_client.call(
+    binding.connection["server"], args
+)</code></pre>
+        <p>Central registry. Policy enforced. Audited. Swap by registering a new version.</p>
+    </div>
+</div>
+
+<p>The MCP server keeps running unchanged. CapMesh adds:</p>
+<ul>
+    <li><strong>Discovery:</strong> Which MCP server provides <code>repository.read</code>?</li>
+    <li><strong>Versioning:</strong> Which version should I use?</li>
+    <li><strong>Policy:</strong> Am I allowed to use it?</li>
+    <li><strong>Audit:</strong> Who used which MCP server, when?</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="natural-language"><span class="section-num">6</span> Natural Language Discovery</h2>
+
+<p>Instead of memorizing capability IDs, agents describe what they need in plain language:</p>
+
+<pre><code># These all resolve to the right capability:
+resolver.need("read code from a repo")           # -> repository.read
+resolver.need("scan for security vulnerabilities") # -> security.scan
+resolver.need("notify the team")                  # -> notification.send
+resolver.need("create a bug ticket")              # -> issue.create
+resolver.need("deploy to production")             # -> deploy.execute
+resolver.need("query the database")               # -> data.query</code></pre>
+
+<h3>How it works</h3>
+
+<ol>
+    <li><strong>Exact match</strong> — if the query IS a capability ID, use it directly (score 1.0)</li>
+    <li><strong>Keyword match</strong> — decompose query and capability IDs into words, match them (score 0.8)</li>
+    <li><strong>Synonym expansion</strong> — "notify" matches "notification.send", "repo" matches "repository" (score 0.5)</li>
+    <li><strong>Description match</strong> — capabilities have descriptions that are also searched</li>
+</ol>
+
+<div class="callout">
+    <strong>No LLM required.</strong> Deterministic. Fast. Auditable. The final resolution still goes through the same policy, versioning, and trace pipeline.
+</div>
+
+<h3>Three levels of specificity</h3>
+
+<pre><code>resolver.resolve(request)    # Exact ID — strict, for production pipelines
+resolver.need("...")         # Natural language — flexible, for agent workflows
+resolver.discover("...")     # Explore — see ranked matches, for discovery</code></pre>
+
+<!-- ============================================================ -->
+<h2 id="governance"><span class="section-num">7</span> Security &amp; Governance</h2>
+
+<div class="callout warn-box">
+    <strong>"Dynamic loading means losing control"</strong> — This is backwards. Without CapMesh, developers hardcode whatever tools they want. With CapMesh, the platform team controls the registry. Dynamic loading WITH governance = control at scale.
+</div>
+
+<h3>Approval Workflow</h3>
+
+<pre><code>governance:
+  status: approved        # approved | deprecated | revoked
+</code></pre>
+
+<ul>
+    <li><strong>approved</strong> — resolvable by agents</li>
+    <li><strong>deprecated</strong> — visible in search, excluded from resolution. Agents auto-fallback to next best.</li>
+    <li><strong>revoked</strong> — completely blocked. Audit trail preserved.</li>
+</ul>
+
+<p>Nothing runs without explicit <code>status: approved</code>. The platform team controls the lifecycle.</p>
+
+<h3>Environment Isolation</h3>
+
+<pre><code>governance:
+  environment: [production]     # staging caller CANNOT access this</code></pre>
+
+<p>A staging agent resolving <code>database.query</code> will never get production database credentials. Automatic. No firewall rules needed.</p>
+
+<h3>Visibility Controls</h3>
+
+<pre><code>governance:
+  visibility: private           # only the owner can resolve this
+  # or: organization            # only same-org callers
+  # or: public                  # anyone</code></pre>
+
+<table>
+    <tr><th>Level</th><th>Who can resolve</th><th>Use case</th></tr>
+    <tr><td><code>public</code></td><td>Anyone</td><td>Shared tools and utilities</td></tr>
+    <tr><td><code>organization</code></td><td>Same org as owner</td><td>Team-internal tools</td></tr>
+    <tr><td><code>private</code></td><td>Owner only</td><td>Security-sensitive scanners, secret tools</td></tr>
+</table>
+
+<h3>Version Pinning</h3>
+
+<pre><code># Agent config: only use scanner v2.x
+result = resolver.resolve(ResolveRequest(
+    capability="security.scan",
+    contract="v1",
+    version_constraint=">=2.0,<3.0",    # pinned
+    caller=caller,
+))</code></pre>
+
+<p>Even if v3.0.0 exists, the agent gets v2.x. Compliance team says "only scanner v2 in production"? One config line.</p>
+
+<h3>Immutable Versions</h3>
+
+<p>Once published, a version's content can never be changed:</p>
+
+<pre><code>$ capmesh agent register --file malicious-scanner.yaml
+Error: security/scanner:1.0.0 already exists with a different digest</code></pre>
+
+<p>Same version + different content = rejected. The only way to publish new content is a new version number. Tamper-proof by design.</p>
+
+<h3>Full Audit Trail</h3>
+
+<pre><code>$ curl http://capmesh:8080/v1/resolutions/res_8444e343826b
+
+{
+  "trace_id": "res_8444e343826b",
+  "timestamp": "2026-09-24T14:32:15Z",
+  "caller": {"identity": "ci-pipeline", "environment": "production"},
+  "requested_capability": "security.code.review",
+  "candidates": [
+    {"provider": "security/crewai-reviewer", "version": "3.1.0", "passed": true},
+    {"provider": "security/langgraph-reviewer", "version": "2.4.0", "passed": true}
+  ],
+  "selected_provider": "security/crewai-reviewer:3.1.0",
+  "outcome": "success",
+  "resolution_ms": 16.0
+}</code></pre>
+
+<p>Every resolution: who asked, what was available, what was selected, why others were rejected. Compliance-ready.</p>
+
+<!-- ============================================================ -->
+<h2 id="runtime"><span class="section-num">8</span> Runtime &amp; Production</h2>
+
+<h3>Deployment</h3>
+
+<pre><code># Option 1: CLI
+$ capmesh server start --port 8080
+
+# Option 2: Docker
+$ docker run -p 8080:8080 -v capmesh-data:/data capmesh-server
+
+# Option 3: Embedded (in your Python app)
+from capmesh.registry import Registry
+from capmesh.resolver import Resolver
+resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())</code></pre>
+
+<h3>How agents call CapMesh at runtime</h3>
+
+<pre><code>import httpx
+
+capmesh = httpx.Client(base_url="http://capmesh:8080")
+
+# Discover and bind — no tool imports needed
+resp = capmesh.post("/v1/resolve", json={
+    "capability": "security.code.review",
+    "contract": "v1",
+    "caller": {"identity": "my-agent", "environment": "production"}
+})
+binding = resp.json()
+
+# Call the provider using the returned binding
+if binding["protocol"] == "a2a":
+    result = a2a_client.call(binding["binding"]["endpoint"], task)
+elif binding["protocol"] == "mcp":
+    result = mcp_client.call(binding["binding"]["server"], task)
+elif binding["protocol"] == "rest":
+    result = httpx.post(binding["binding"]["endpoint"], json=payload)</code></pre>
+
+<h3>Live operations (no restart needed)</h3>
+
+<table>
+    <tr><th>Operation</th><th>How</th><th>Agent impact</th></tr>
+    <tr><td>Add new provider</td><td><code>POST /v1/providers/register</code></td><td>Discovered instantly on next resolve</td></tr>
+    <tr><td>Upgrade provider</td><td>Register higher version</td><td>Auto-selected (highest semver)</td></tr>
+    <tr><td>Swap provider</td><td>Register compatible replacement</td><td>Zero code changes</td></tr>
+    <tr><td>Deprecate provider</td><td>Set <code>status: deprecated</code></td><td>Auto-fallback to next best</td></tr>
+    <tr><td>Restrict access</td><td>Set <code>visibility: private</code></td><td>Unauthorized callers denied</td></tr>
+    <tr><td>Query audit</td><td><code>GET /v1/resolutions/{trace_id}</code></td><td>Full trace available</td></tr>
+</table>
+
+<h3>Skill Dual Binding</h3>
+
+<p>When a Skill is resolved, CapMesh performs two bindings:</p>
+
+<ol>
+    <li><strong>Load skill</strong> — SKILL.md instructions + assets</li>
+    <li><strong>Resolve tool dependencies</strong> — each <code>requires</code> capability is independently resolved to a tool</li>
+</ol>
+
+<pre><code># The skill says "I need repository.read" — not "I need GitHub"
+# CapMesh resolves the tools separately
+{
+  "protocol": "skill",
+  "connection": {
+    "instructions": "SKILL.md",
+    "tool_bindings": [
+      {"capability": "repository.read", "provider": "gitlab-reader:2.0.0", "protocol": "mcp"},
+      {"capability": "repository.search", "provider": "gitlab-reader:2.0.0", "protocol": "mcp"}
+    ]
+  }
+}</code></pre>
+
+<p>Same skill YAML works with GitHub, GitLab, or Bitbucket — no changes needed.</p>
+
+<!-- ============================================================ -->
+<h2 id="benefits"><span class="section-num">9</span> Benefits</h2>
+
+<div class="benefit-grid">
+    <div class="benefit-card">
+        <div class="icon">&#x1f50d;</div>
+        <h4>Dynamic Discovery</h4>
+        <p>Add providers at runtime. No restart. No redeploy.</p>
+    </div>
+    <div class="benefit-card">
+        <div class="icon">&#x1f504;</div>
+        <h4>Provider Swap</h4>
+        <p>Replace tools without code changes. Agents auto-discover.</p>
+    </div>
+    <div class="benefit-card">
+        <div class="icon">&#x1f310;</div>
+        <h4>Cross-Framework</h4>
+        <p>LangGraph, CrewAI, Strands — one registry, one API.</p>
+    </div>
+    <div class="benefit-card">
+        <div class="icon">&#x1f512;</div>
+        <h4>Policy &amp; Control</h4>
+        <p>Visibility, environment, approval — governance in YAML.</p>
+    </div>
+    <div class="benefit-card">
+        <div class="icon">&#x1f4cb;</div>
+        <h4>Audit Trail</h4>
+        <p>Every resolution traced. Who, what, when, why.</p>
+    </div>
+    <div class="benefit-card">
+        <div class="icon">&#x1f6e1;</div>
+        <h4>Immutability</h4>
+        <p>Published versions can't be tampered with. Digest verification.</p>
+    </div>
+    <div class="benefit-card">
+        <div class="icon">&#x1f4e6;</div>
+        <h4>Skill Portability</h4>
+        <p>Same skill works with any tool vendor. Dual binding.</p>
+    </div>
+    <div class="benefit-card">
+        <div class="icon">&#x1f4ac;</div>
+        <h4>Natural Language</h4>
+        <p>"Read a repo" instead of "repository.read/v1". No LLM needed.</p>
+    </div>
+    <div class="benefit-card">
+        <div class="icon">&#x1f433;</div>
+        <h4>Docker-like UX</h4>
+        <p>Build, push, pull, tag, inspect — familiar CLI.</p>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="getting-started"><span class="section-num">10</span> Getting Started</h2>
+
+<h3>Install</h3>
+<pre><code>pip install capmesh
+pip install "capmesh[server]"   # for the registry server</code></pre>
+
+<h3>Run the demo</h3>
+<pre><code>git clone https://github.com/capmesh/capmesh.git
+cd capmesh
+pip install -e ".[server,dev]"
+
+# Generate 34 providers and run the orchestrator
+python demo/registry/generate_providers.py
+python demo/app.py
+
+# Or step by step
+python demo/01_build.py            # validate manifests
+python demo/02_register.py         # register providers
+python demo/03_resolve.py          # resolve capabilities
+python demo/04_benefits.py         # WITH vs WITHOUT comparison
+python demo/05_production.py       # production architecture
+python demo/06_governance.py       # security & governance
+python demo/07_natural_language.py # natural language discovery</code></pre>
+
+<h3>Run tests</h3>
+<pre><code>pytest tests/ -v                           # 164 tests
+pytest tests/ -v --cov=capmesh             # with coverage (87%)</code></pre>
+
+<h3>API Reference</h3>
+<pre><code>POST   /v1/providers/register              # Register a provider
+GET    /v1/providers/{namespace}/{name}     # Get provider details
+GET    /v1/capabilities/{id}/providers      # List providers for capability
+POST   /v1/search                          # Keyword search
+POST   /v1/resolve                         # Resolve capability to provider
+GET    /v1/resolutions/{trace_id}          # Query resolution trace
+POST   /v1/artifacts/publish               # Publish artifact
+GET    /v1/artifacts/{ns}/{name}/{version} # Get artifact
+GET    /healthz                            # Health check</code></pre>
+
+<div class="callout success-box">
+    <strong>Open source. Apache 2.0.</strong> Contributions welcome at <a href="https://github.com/capmesh/capmesh">github.com/capmesh/capmesh</a>.
+</div>
+
+<footer style="text-align: center; padding: 40px 0; color: var(--text-dim); border-top: 1px solid var(--border); margin-top: 60px;">
+    CapMesh &mdash; Service Discovery for the Agentic World<br>
+    <a href="https://github.com/capmesh/capmesh">GitHub</a> &nbsp;|&nbsp; Apache 2.0 License
+</footer>
+
+</body>
+</html>
