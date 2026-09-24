@@ -25,8 +25,10 @@ class DiscoveryResult:
 class CapabilityDiscovery:
     """Discovers capabilities from natural language queries."""
 
-    def __init__(self, registry: Registry) -> None:
+    def __init__(self, registry: Registry, embedding_engine=None) -> None:
         self._registry = registry
+        self._embedding_engine = embedding_engine
+        self._capability_embeddings: dict[str, list[float]] = {}
 
     def discover(self, query: str, contract: str = "v1", limit: int = 5) -> list[DiscoveryResult]:
         """Find capabilities matching a natural language query.
@@ -35,6 +37,9 @@ class CapabilityDiscovery:
         1. Exact match on capability ID (score 1.0)
         2. All query words found in capability ID parts (score 0.8)
         3. Partial word matches in ID + description (score 0.3-0.7)
+
+        When an embedding_engine is available, semantic similarity is used
+        and merged with keyword results (semantic has priority).
         """
         query_lower = query.lower().strip()
         query_words = self._tokenize(query_lower)
@@ -50,7 +55,51 @@ class CapabilityDiscovery:
                 if cap.capability not in capability_map or cap.description:
                     capability_map[cap.capability] = cap.description
 
-        results: list[DiscoveryResult] = []
+        # Try semantic search first if embedding engine is available
+        if self._embedding_engine and self._embedding_engine.available:
+            semantic_results = self._semantic_search(query, capability_map, contract)
+            if semantic_results:
+                keyword_results = self._keyword_search(query_lower, query_words, capability_map, contract)
+                return self._merge_results(semantic_results, keyword_results, limit)
+
+        # Fall back to keyword matching
+        return self._keyword_search(query_lower, query_words, capability_map, contract)[:limit]
+
+    def _semantic_search(self, query: str, capability_map: dict[str, str], contract: str) -> list[DiscoveryResult]:
+        """Search capabilities using embedding similarity."""
+        engine = self._embedding_engine
+
+        # Embed capabilities (cached)
+        for cap_id, desc in capability_map.items():
+            if cap_id not in self._capability_embeddings:
+                text = f"{cap_id.replace('.', ' ')} {desc}"
+                vec = engine.embed(text)
+                if vec:
+                    self._capability_embeddings[cap_id] = vec
+
+        # Embed query
+        query_vec = engine.embed(query)
+        if query_vec is None:
+            return []
+
+        results = []
+        for cap_id, cap_vec in self._capability_embeddings.items():
+            score = engine.similarity(query_vec, cap_vec)
+            if score > 0.25:
+                results.append(DiscoveryResult(
+                    capability=cap_id,
+                    contract=contract,
+                    score=round(score, 3),
+                    reason=f"semantic similarity ({score:.2f})",
+                ))
+
+        results.sort(key=lambda r: r.score, reverse=True)
+        return results
+
+    def _keyword_search(self, query_lower: str, query_words: list[str],
+                        capability_map: dict[str, str], contract: str) -> list[DiscoveryResult]:
+        """Search capabilities using keyword and synonym matching."""
+        results = []
         for cap_id, description in capability_map.items():
             score, reason = self._score(query_lower, query_words, cap_id, description)
             if score > 0.0:
@@ -60,9 +109,23 @@ class CapabilityDiscovery:
                     score=score,
                     reason=reason,
                 ))
-
         results.sort(key=lambda r: r.score, reverse=True)
-        return results[:limit]
+        return results
+
+    def _merge_results(self, semantic: list[DiscoveryResult], keyword: list[DiscoveryResult],
+                       limit: int) -> list[DiscoveryResult]:
+        """Merge semantic and keyword results. Semantic gets priority, deduped."""
+        seen: set[str] = set()
+        merged: list[DiscoveryResult] = []
+        for r in semantic:
+            if r.capability not in seen:
+                seen.add(r.capability)
+                merged.append(r)
+        for r in keyword:
+            if r.capability not in seen:
+                seen.add(r.capability)
+                merged.append(r)
+        return merged[:limit]
 
     def discover_one(self, query: str, contract: str = "v1") -> DiscoveryResult | None:
         """Find the best matching capability, or None."""

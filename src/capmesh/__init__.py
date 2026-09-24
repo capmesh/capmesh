@@ -180,7 +180,7 @@ class CapMesh:
         return f"<CapMesh: {count} providers registered>"
 
 
-def connect(root: str | None = None, server: str | None = None, telemetry: bool = False) -> CapMesh:
+def connect(root: str | None = None, server: str | None = None, telemetry: bool = False, semantic: bool = False) -> CapMesh:
     """Connect to CapMesh. One line to get started.
 
     Args:
@@ -227,5 +227,15 @@ def connect(root: str | None = None, server: str | None = None, telemetry: bool 
             OtelInstrumentor().instrument(resolver)
         except ImportError:
             pass  # opentelemetry not installed
+
+    if semantic:
+        try:
+            from capmesh.resolver.embeddings import EmbeddingEngine
+            from capmesh.resolver.discovery import CapabilityDiscovery
+            embedding_engine = EmbeddingEngine()
+            if embedding_engine.available:
+                resolver._discovery = CapabilityDiscovery(registry, embedding_engine=embedding_engine)
+        except ImportError:
+            pass  # sentence-transformers not installed
 
     return CapMesh(resolver=resolver, registry=registry)
