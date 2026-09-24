@@ -208,7 +208,7 @@ def connect(root: str | None = None, server: str | None = None, telemetry: bool 
     policy = default_policy_engine()
 
     storage_root = registry_root or Path.home() / ".capmesh"
-    db = sqlite3.connect(str(storage_root / "traces.db"))
+    db = sqlite3.connect(str(storage_root / "traces.db"), check_same_thread=False)
     db.row_factory = sqlite3.Row
     trace_store = TraceStore(db)
     trace_store.init_schema()

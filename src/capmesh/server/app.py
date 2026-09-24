@@ -24,7 +24,7 @@ def create_app(root: Path | None = None) -> FastAPI:
     registry = Registry(root=root_path)
     app.state.registry = registry
 
-    db = sqlite3.connect(str(root_path / "traces.db"))
+    db = sqlite3.connect(str(root_path / "traces.db"), check_same_thread=False)
     db.row_factory = sqlite3.Row
     trace_store = TraceStore(db)
     trace_store.init_schema()
