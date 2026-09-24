@@ -48,8 +48,10 @@ def make_resolve_command() -> typer.Typer:
     @resolve_app.callback(invoke_without_command=True)
     def resolve(
         ctx: typer.Context,
-        capability: str = typer.Argument(..., help="Capability ID to resolve"),
+        capability: str = typer.Argument(..., help="Capability ID or natural language query"),
         contract: str = typer.Option("v1", help="Contract version"),
+        kind: str = typer.Option(None, "--kind", "-k", help="Filter by type: agent, tool, skill"),
+        protocol: str = typer.Option(None, "--protocol", "-p", help="Filter by protocol: a2a, mcp, rest, skill"),
         identity: str = typer.Option("cli-user", help="Caller identity"),
         environment: str = typer.Option(None, help="Caller environment"),
         version_constraint: str = typer.Option(None, "--version", help="Version constraint (e.g. '>=2.0,<3.0')"),
@@ -57,17 +59,15 @@ def make_resolve_command() -> typer.Typer:
         output_json: bool = typer.Option(False, "--json", help="Output as JSON"),
     ) -> None:
         """Resolve a capability to a provider."""
-        resolver, _ = _get_resolver()
+        import capmesh as cm
 
-        request = ResolveRequest(
-            capability=capability,
-            contract=contract,
-            caller=CallerContext(identity=identity, environment=environment),
-            version_constraint=version_constraint,
-        )
+        mesh = cm.connect(root=Path(root_str) if (root_str := os.environ.get("CAPMESH_ROOT")) else None)
 
         try:
-            resolution = resolver.resolve(request)
+            resolution = mesh.need(
+                capability, kind=kind, protocol=protocol,
+                identity=identity, environment=environment, version=version_constraint,
+            )
         except ResolutionError as e:
             if output_json:
                 print(json.dumps({"error": str(e)}))
