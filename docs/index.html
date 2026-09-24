@@ -243,6 +243,116 @@ tool = mesh.need("read repo", kind="tool", protocol="mcp")</pre>
     <tr><td>Pin a team to scanner v2.x only</td><td class="warn">Manual version gates in each repo</td><td class="highlight2">version_constraint: ">=2.0,&lt;3.0"</td></tr>
 </table>
 
+<h3>The Real Cost of Hardcoded Tools</h3>
+
+<p>It's not just about swapping one tool. It's what happens at scale:</p>
+
+<div class="card" style="margin: 20px 0;">
+<p><strong>Your company has 15 agents across 4 teams.</strong> Each agent hardcodes its tools. Now:</p>
+<ul style="margin: 12px 0; padding-left: 20px; color: var(--text-dim);">
+<li>Security team approves a new scanner. <span class="warn">15 agents need code changes.</span></li>
+<li>Platform team migrates from GitHub to GitLab. <span class="warn">Every repo-reading agent needs an update.</span></li>
+<li>Compliance requires audit trails of tool usage. <span class="warn">Custom logging in every agent.</span></li>
+<li>An intern's agent accidentally calls the production database. <span class="warn">No environment isolation.</span></li>
+<li>Two teams build the same capability without knowing. <span class="warn">No discovery.</span></li>
+</ul>
+<p>This isn't hypothetical. It's happening in every org building with agents today.</p>
+</div>
+
+<h3>What CapMesh Gives You</h3>
+
+<div class="benefit-grid">
+    <div class="benefit-card">
+        <h4>Late Binding</h4>
+        <p>Agents bind to tools at resolution time, not at build time. Swap providers without touching agent code. Ever.</p>
+    </div>
+    <div class="benefit-card">
+        <h4>Dynamic Discovery</h4>
+        <p>Register a new agent at 2pm. Every orchestrator discovers it at 2:01pm. No restart. No redeploy. No config change.</p>
+    </div>
+    <div class="benefit-card">
+        <h4>Natural Language</h4>
+        <p><code>mesh.need("scan for security issues")</code> — agents describe what they need in English. CapMesh finds who provides it.</p>
+    </div>
+    <div class="benefit-card">
+        <h4>Cross-Framework</h4>
+        <p>LangGraph, CrewAI, Strands, AutoGen, Google ADK — all in one registry. Framework is metadata, not lock-in.</p>
+    </div>
+    <div class="benefit-card">
+        <h4>Type-Safe Filtering</h4>
+        <p><code>kind="agent"</code>, <code>protocol="mcp"</code> — ask for exactly what you need. An MCP tool. An A2A agent. A Skill. Or search all.</p>
+    </div>
+    <div class="benefit-card">
+        <h4>Skill Dual Binding</h4>
+        <p>Skills declare <em>what</em> they need, not <em>which</em> tool. CapMesh resolves the tools independently. Same skill works with any vendor.</p>
+    </div>
+    <div class="benefit-card">
+        <h4>Policy &amp; Access Control</h4>
+        <p>Visibility (public/org/private), environment isolation (staging vs prod), approval workflows — all in the manifest YAML.</p>
+    </div>
+    <div class="benefit-card">
+        <h4>Immutable Versions</h4>
+        <p>Once published, a version can never be silently modified. sha256 digest verification. Tamper-proof by design.</p>
+    </div>
+    <div class="benefit-card">
+        <h4>Complete Audit Trail</h4>
+        <p>Every resolution traced: who asked, what was available, what was selected, why others were rejected. Compliance-ready.</p>
+    </div>
+    <div class="benefit-card">
+        <h4>Version Pinning</h4>
+        <p><code>mesh.need("scan", version=">=2.0,&lt;3.0")</code> — compliance says "only scanner v2 in prod"? One parameter. Deterministic.</p>
+    </div>
+    <div class="benefit-card">
+        <h4>Graceful Deprecation</h4>
+        <p>Deprecate a provider — agents auto-fallback to the next best version. No emergency patches. No breaking changes.</p>
+    </div>
+    <div class="benefit-card">
+        <h4>Caching</h4>
+        <p>Resolution cache with auto-invalidation. First call: 16ms. Repeated calls: 0ms. Cache clears automatically when registry changes.</p>
+    </div>
+</div>
+
+<h3>The DNS Analogy</h3>
+
+<div class="callout info-box">
+    <p><strong>CapMesh is to agents what DNS is to IP addresses.</strong></p>
+    <p style="color: var(--text-dim); margin-top: 8px;">Before DNS: every application hardcoded IP addresses. Change a server? Update every client.<br>
+    After DNS: applications use domain names. Move a server? Update one DNS record.<br><br>
+    Before CapMesh: every agent hardcodes tool endpoints. Swap a tool? Update every agent.<br>
+    After CapMesh: agents ask for capabilities. Swap a tool? Register one new provider.</p>
+</div>
+
+<h3>Who Benefits</h3>
+
+<table>
+    <tr><th>Role</th><th>Without CapMesh</th><th>With CapMesh</th></tr>
+    <tr>
+        <td><strong>Agent developers</strong></td>
+        <td>Import 5 tool SDKs, manage versions, handle auth per tool</td>
+        <td><code>mesh.need("what I need")</code> — one line, any tool</td>
+    </tr>
+    <tr>
+        <td><strong>Platform teams</strong></td>
+        <td>Coordinate tool changes across 15 agent repos</td>
+        <td>Register once in CapMesh. All agents discover automatically.</td>
+    </tr>
+    <tr>
+        <td><strong>Security teams</strong></td>
+        <td>No visibility into which agents use which tools</td>
+        <td>Full audit trail. Approval workflows. Environment isolation.</td>
+    </tr>
+    <tr>
+        <td><strong>Compliance</strong></td>
+        <td>Manual tracking of tool usage</td>
+        <td>Every resolution traced. Version pinning. Immutable digests.</td>
+    </tr>
+    <tr>
+        <td><strong>Leadership</strong></td>
+        <td>"How many agents do we have? What can they do?"</td>
+        <td><code>capmesh search "*"</code> — complete capability catalog</td>
+    </tr>
+</table>
+
 <!-- ============================================================ -->
 <h2 id="concepts"><span class="section-num">2</span> Core Concepts</h2>
 
