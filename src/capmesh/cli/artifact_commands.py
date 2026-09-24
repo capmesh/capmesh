@@ -16,6 +16,19 @@ from capmesh.cli.scaffold import scaffold_manifest, write_scaffold
 
 console = Console()
 
+_KIND_COLORS = {"agent": "bright_cyan", "tool": "bright_yellow", "skill": "bright_magenta"}
+_PROTO_COLORS = {"a2a": "bright_green", "mcp": "bright_blue", "rest": "bright_yellow", "skill": "bright_magenta"}
+
+
+def _kind_tag(kind: str) -> str:
+    color = _KIND_COLORS.get(kind, "white")
+    return f"[{color}]\\[{kind}][/{color}]"
+
+
+def _proto_tag(protocol: str) -> str:
+    color = _PROTO_COLORS.get(protocol, "white")
+    return f"[{color}]\\[{protocol}][/{color}]"
+
 
 def _get_registry() -> Registry:
     root = os.environ.get("CAPMESH_ROOT")
@@ -81,8 +94,10 @@ def _make_artifact_app(kind: Kind) -> typer.Typer:
             console.print(f"[red]Error: {e}[/red]")
             raise typer.Exit(code=1)
 
+        kind_tag = _kind_tag(manifest.metadata.kind.value)
+        proto_tag = _proto_tag(manifest.interface.protocol)
         console.print(
-            f"[green]Registered {manifest.metadata.namespace}/{manifest.metadata.name}:{manifest.metadata.version}[/green]"
+            f"[green]Registered {manifest.metadata.namespace}/{manifest.metadata.name}:{manifest.metadata.version}[/green]  {kind_tag} {proto_tag}"
         )
         console.print(f"  Digest: sha256:{digest}")
 
@@ -101,13 +116,15 @@ def _make_artifact_app(kind: Kind) -> typer.Typer:
             raise typer.Exit(code=1)
 
         if output_json:
-            print(json.dumps(manifest.model_dump(mode="json"), indent=2))
+            data = manifest.model_dump(mode="json")
+            data["_tags"] = {"kind": manifest.metadata.kind.value, "protocol": manifest.interface.protocol}
+            print(json.dumps(data, indent=2))
         else:
-            console.print(f"[bold]{namespace}/{name}:{version}[/bold]")
-            console.print(f"  Kind:       {manifest.metadata.kind.value}")
+            kind_tag = _kind_tag(manifest.metadata.kind.value)
+            proto_tag = _proto_tag(manifest.interface.protocol)
+            console.print(f"[bold]{namespace}/{name}:{version}[/bold]  {kind_tag} {proto_tag}")
             console.print(f"  Owner:      {manifest.metadata.owner}")
             console.print(f"  Digest:     sha256:{manifest.metadata.digest}")
-            console.print(f"  Protocol:   {manifest.interface.protocol}")
             console.print(f"  Visibility: {manifest.governance.visibility.value}")
             console.print(f"  Status:     {manifest.governance.status.value}")
             if manifest.provides:
@@ -157,10 +174,19 @@ def make_search_command() -> typer.Typer:
             table = Table()
             table.add_column("NAMESPACE")
             table.add_column("NAME")
-            table.add_column("KIND")
             table.add_column("VERSION")
+            table.add_column("KIND")
+            table.add_column("PROTOCOL")
             for r in results:
-                table.add_row(r.namespace, r.name, r.kind.value, r.version)
+                manifest = registry.get(r.namespace, r.name, r.version)
+                protocol = manifest.interface.protocol if manifest else "?"
+                kind_color = _KIND_COLORS.get(r.kind.value, "white")
+                proto_color = _PROTO_COLORS.get(protocol, "white")
+                table.add_row(
+                    r.namespace, r.name, r.version,
+                    f"[{kind_color}]{r.kind.value}[/{kind_color}]",
+                    f"[{proto_color}]{protocol}[/{proto_color}]",
+                )
             console.print(table)
 
     return search_app

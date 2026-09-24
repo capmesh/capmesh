@@ -75,9 +75,19 @@ def make_resolve_command() -> typer.Typer:
                 console.print(f"[red]Error: {e}[/red]")
             raise typer.Exit(code=1)
 
+        # Determine kind from registry
+        _manifest = None
+        try:
+            _reg = _get_registry()
+            _manifest = _reg.get(resolution.provider_namespace, resolution.provider_name, resolution.provider_version)
+        except Exception:
+            pass
+        _kind = _manifest.metadata.kind.value if _manifest else "?"
+
         if output_json:
             data = {
                 "provider": f"{resolution.provider_namespace}/{resolution.provider_name}:{resolution.provider_version}",
+                "kind": _kind,
                 "protocol": resolution.binding.protocol,
                 "binding": resolution.binding.connection,
                 "trace_id": resolution.trace.trace_id,
@@ -86,8 +96,15 @@ def make_resolve_command() -> typer.Typer:
                 data["trace"] = resolution.trace.model_dump(mode="json")
             print(json.dumps(data, indent=2, default=str))
         else:
-            console.print(f"[green]\u2713 Resolved {capability}/{contract}[/green]")
-            console.print(f"  Provider:  {resolution.provider_namespace}/{resolution.provider_name}:{resolution.provider_version}")
+            _kind_colors = {"agent": "bright_cyan", "tool": "bright_yellow", "skill": "bright_magenta"}
+            _proto_colors = {"a2a": "bright_green", "mcp": "bright_blue", "rest": "bright_yellow", "skill": "bright_magenta"}
+            kc = _kind_colors.get(_kind, "white")
+            pc = _proto_colors.get(resolution.binding.protocol, "white")
+            kind_tag = f"[{kc}]\\[{_kind}][/{kc}]"
+            proto_tag = f"[{pc}]\\[{resolution.binding.protocol}][/{pc}]"
+
+            console.print(f"[green]Resolved {capability}/{contract}[/green]")
+            console.print(f"  Provider:  {resolution.provider_namespace}/{resolution.provider_name}:{resolution.provider_version}  {kind_tag} {proto_tag}")
             console.print(f"  Protocol:  {resolution.binding.protocol}")
             for key, val in resolution.binding.connection.items():
                 console.print(f"  {key.title():10s} {val}")
@@ -142,9 +159,20 @@ def make_providers_command() -> typer.Typer:
             table.add_column("NAMESPACE")
             table.add_column("NAME")
             table.add_column("VERSION")
-            table.add_column("STATUS")
+            table.add_column("KIND")
+            table.add_column("PROTOCOL")
+            _kind_colors = {"agent": "bright_cyan", "tool": "bright_yellow", "skill": "bright_magenta"}
+            _proto_colors = {"a2a": "bright_green", "mcp": "bright_blue", "rest": "bright_yellow", "skill": "bright_magenta"}
             for r in results:
-                table.add_row(r.namespace, r.name, r.version, "approved")
+                manifest = registry.get(r.namespace, r.name, r.version)
+                protocol = manifest.interface.protocol if manifest else "?"
+                kc = _kind_colors.get(r.kind.value, "white")
+                pc = _proto_colors.get(protocol, "white")
+                table.add_row(
+                    r.namespace, r.name, r.version,
+                    f"[{kc}]{r.kind.value}[/{kc}]",
+                    f"[{pc}]{protocol}[/{pc}]",
+                )
             console.print(table)
 
     return providers_app
