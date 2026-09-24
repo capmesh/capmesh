@@ -49,6 +49,8 @@ Swap tools, upgrade versions, restrict access — **zero code changes**.
 ```bash
 pip install capmesh                # CLI + library
 pip install "capmesh[server]"      # adds registry server
+pip install "capmesh[telemetry]"   # OpenTelemetry span export
+pip install "capmesh[semantic]"    # semantic search with local embeddings
 ```
 
 ## Quick Start
@@ -192,6 +194,43 @@ tool = mesh.need("read a repo", kind="tool")
 ```
 
 See [examples/frameworks/](examples/frameworks/) for complete integration code for 8 frameworks.
+
+## Optional Features
+
+### Semantic Search (local embeddings)
+
+```python
+mesh = capmesh.connect(semantic=True)
+
+# Finds capabilities even with completely different words:
+mesh.need("make sure our APIs are fast")     # -> performance.analyze
+mesh.need("alert the team about an incident") # -> notification.send
+mesh.need("check code for bugs")              # -> security.code.review
+```
+
+Uses `sentence-transformers` (all-MiniLM-L6-v2) locally. No API keys. No cloud calls. Falls back to keyword matching if not installed.
+
+### OpenTelemetry
+
+```python
+mesh = capmesh.connect(telemetry=True)
+
+# Every resolution emits an OTEL span:
+#   name: "capmesh.resolve"
+#   attributes: capability, provider, protocol, outcome, resolution_ms, caller, cache_hit
+# Pipe to Jaeger, Grafana Tempo, Datadog — your choice.
+```
+
+### Caching
+
+```python
+mesh = capmesh.connect()
+
+mesh.need("security scan")   # first call: ~16ms (hits SQLite)
+mesh.need("security scan")   # second call: ~0ms (cache hit)
+# Cache auto-invalidates when registry changes
+print(mesh.cache_stats)      # {"hits": 42, "misses": 8, "size": 12}
+```
 
 ## Governance
 
