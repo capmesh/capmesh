@@ -1,0 +1,22 @@
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: agent
+  namespace: analysis
+  name: code-analyzer
+  version: "1.0.0"
+  owner: platform-team
+provides:
+  - capability: code.analyze
+    contract: v1
+    description: Analyze Python code for structure, complexity, and issues
+requires:
+  - capability: repository.read
+    contract: v1
+interface:
+  protocol: a2a
+  endpoint: http://localhost:9200
+governance:
+  status: approved
+  visibility: public
+  labels:
+    framework: fastapi
