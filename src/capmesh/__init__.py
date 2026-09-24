@@ -1,6 +1,6 @@
 """CapMesh — service discovery for the agentic world."""
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 
 from pathlib import Path
 from typing import TYPE_CHECKING

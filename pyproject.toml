@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "capmesh"
-version = "0.1.0"
+version = "1.0.0"
 description = "Service discovery for the agentic world: dynamically discover and bind Agents, Skills and Tools by capability."
 readme = "README.md"
 license = "Apache-2.0"
