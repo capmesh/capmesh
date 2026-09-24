@@ -13,9 +13,20 @@ class Registry:
             root = Path.home() / ".capmesh"
         self._storage = Storage(root)
         self._storage.init()
+        self._on_change_callbacks: list = []
+
+    def on_change(self, callback) -> None:
+        """Register a callback to be called when the registry changes."""
+        self._on_change_callbacks.append(callback)
+
+    def _notify_change(self) -> None:
+        for cb in self._on_change_callbacks:
+            cb()
 
     def register(self, manifest: Manifest) -> str:
-        return self._storage.save_manifest(manifest)
+        result = self._storage.save_manifest(manifest)
+        self._notify_change()
+        return result
 
     def get(self, namespace: str, name: str, version: str) -> Manifest | None:
         return self._storage.load_manifest(namespace, name, version)
@@ -36,6 +47,7 @@ class Registry:
 
     def delete(self, namespace: str, name: str, version: str) -> None:
         self._storage.delete_artifact(namespace, name, version)
+        self._notify_change()
 
     def rebuild_index(self) -> int:
         return self._storage.rebuild_index()

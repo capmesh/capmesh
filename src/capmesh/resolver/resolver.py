@@ -26,6 +26,52 @@ class ResolutionError(Exception):
     """Raised when no provider can be resolved."""
 
 
+class _ResolutionCache:
+    """TTL-based cache for resolution results. Avoids repeated SQLite queries."""
+
+    def __init__(self, ttl_seconds: float = 30.0, max_size: int = 256) -> None:
+        self._ttl = ttl_seconds
+        self._max_size = max_size
+        self._cache: dict[str, tuple[float, Resolution]] = {}
+        self._hits = 0
+        self._misses = 0
+
+    def _key(self, capability: str, contract: str, caller_id: str,
+             env: str | None, version_constraint: str | None) -> str:
+        return f"{capability}|{contract}|{caller_id}|{env}|{version_constraint}"
+
+    def get(self, capability: str, contract: str, caller_id: str,
+            env: str | None, version_constraint: str | None) -> Resolution | None:
+        key = self._key(capability, contract, caller_id, env, version_constraint)
+        entry = self._cache.get(key)
+        if entry is None:
+            self._misses += 1
+            return None
+        cached_at, resolution = entry
+        if (time.monotonic() - cached_at) > self._ttl:
+            del self._cache[key]
+            self._misses += 1
+            return None
+        self._hits += 1
+        return resolution
+
+    def put(self, capability: str, contract: str, caller_id: str,
+            env: str | None, version_constraint: str | None, resolution: Resolution) -> None:
+        if len(self._cache) >= self._max_size:
+            # Evict oldest
+            oldest_key = min(self._cache, key=lambda k: self._cache[k][0])
+            del self._cache[oldest_key]
+        key = self._key(capability, contract, caller_id, env, version_constraint)
+        self._cache[key] = (time.monotonic(), resolution)
+
+    def invalidate(self) -> None:
+        self._cache.clear()
+
+    @property
+    def stats(self) -> dict:
+        return {"hits": self._hits, "misses": self._misses, "size": len(self._cache)}
+
+
 class Resolver:
     def __init__(
         self,
@@ -33,12 +79,17 @@ class Resolver:
         policy_engine: PolicyEngine,
         trace_store: TraceStore | None = None,
         adapter_registry: AdapterRegistry | None = None,
+        cache_ttl: float = 30.0,
     ) -> None:
         self._registry = registry
         self._policy = policy_engine
         self._trace_store = trace_store
         self._adapter_registry = adapter_registry
         self._discovery = CapabilityDiscovery(registry)
+        self._cache = _ResolutionCache(ttl_seconds=cache_ttl)
+
+        # Auto-invalidate cache when registry changes
+        registry.on_change(self._cache.invalidate)
 
     def need(self, query: str, caller: CallerContext | None = None,
              contract: str = "v1", version_constraint: str | None = None) -> Resolution:
@@ -77,7 +128,25 @@ class Resolver:
         Returns a list of DiscoveryResult objects."""
         return self._discovery.discover(query, contract, limit)
 
+    @property
+    def cache_stats(self) -> dict:
+        """Return cache hit/miss/size stats."""
+        return self._cache.stats
+
+    def invalidate_cache(self) -> None:
+        """Clear the resolution cache (call after registering new providers)."""
+        self._cache.invalidate()
+
     def resolve(self, request: ResolveRequest) -> Resolution:
+        # Check cache first
+        cached = self._cache.get(
+            request.capability, request.contract,
+            request.caller.identity, request.caller.environment,
+            request.version_constraint,
+        )
+        if cached is not None:
+            return cached
+
         start = time.monotonic()
         trace_id = f"res_{uuid.uuid4().hex[:12]}"
         candidates: list[CandidateRecord] = []
@@ -181,13 +250,22 @@ class Resolver:
         )
         self._save_trace(trace)
 
-        return Resolution(
+        resolution = Resolution(
             provider_name=meta.name,
             provider_version=meta.version,
             provider_namespace=meta.namespace,
             binding=binding,
             trace=trace,
         )
+
+        # Cache the result
+        self._cache.put(
+            request.capability, request.contract,
+            request.caller.identity, request.caller.environment,
+            request.version_constraint, resolution,
+        )
+
+        return resolution
 
     # --- helpers ---
 
