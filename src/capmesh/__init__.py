@@ -35,13 +35,15 @@ class CapMesh:
         self._resolver = resolver
         self._registry = registry
 
-    def need(self, query: str, protocol: str | None = None,
+    def need(self, query: str, kind: str | None = None,
+             protocol: str | None = None,
              identity: str = "default", environment: str | None = None,
              version: str | None = None):
         """Find a capability using natural language.
 
         Args:
             query: What you need, in plain English ("read a repo", "scan for security issues")
+            kind: Filter by type — "agent", "tool", "skill", or None for any
             protocol: Filter by protocol — "mcp", "a2a", "rest", "skill", or None for any
             identity: Who's asking (for policy enforcement)
             environment: Where you're running ("production", "staging")
@@ -51,26 +53,26 @@ class CapMesh:
             Resolution with .binding.protocol, .binding.connection, .provider_name, etc.
 
         Examples:
-            mesh.need("security scan")                           # any protocol
-            mesh.need("security scan", protocol="a2a")           # only A2A agents
-            mesh.need("read a repo", protocol="mcp")             # only MCP tools
-            mesh.need("analyze code", protocol="rest")           # only REST APIs
-            mesh.need("review code", protocol="skill")           # only Skills
+            mesh.need("security scan")                                      # any
+            mesh.need("security scan", kind="agent")                        # only agents
+            mesh.need("security scan", kind="tool")                         # only tools
+            mesh.need("security scan", kind="skill")                        # only skills
+            mesh.need("security scan", protocol="a2a")                      # only A2A
+            mesh.need("read a repo", protocol="mcp")                        # only MCP
+            mesh.need("security scan", kind="agent", protocol="a2a")        # agent + A2A
         """
         from capmesh.models.resolution import CallerContext
         caller = CallerContext(identity=identity, environment=environment)
         result = self._resolver.need(query, caller=caller, version_constraint=version)
 
-        if protocol and result.binding.protocol != protocol:
-            # First match wasn't the right protocol — search through all providers
-            return self._resolve_with_protocol(
-                result.trace.requested_capability, "v1", protocol, caller, version
-            )
+        if kind or protocol:
+            cap = result.trace.requested_capability
+            return self._resolve_with_filter(cap, "v1", kind, protocol, caller, version)
 
         return result
 
     def resolve(self, capability: str, contract: str = "v1",
-                protocol: str | None = None,
+                kind: str | None = None, protocol: str | None = None,
                 identity: str = "default", environment: str | None = None,
                 version: str | None = None):
         """Resolve an exact capability ID.
@@ -78,6 +80,7 @@ class CapMesh:
         Args:
             capability: Capability ID ("security.code.review", "repository.read")
             contract: Contract version (default "v1")
+            kind: Filter by type — "agent", "tool", "skill", or None for any
             protocol: Filter by protocol — "mcp", "a2a", "rest", "skill", or None for any
             identity: Who's asking
             environment: Where you're running
@@ -87,38 +90,53 @@ class CapMesh:
             Resolution with .binding.protocol, .binding.connection, .provider_name, etc.
 
         Examples:
-            mesh.resolve("security.code.review")                          # any protocol
-            mesh.resolve("security.code.review", protocol="a2a")          # only A2A agents
-            mesh.resolve("security.code.review", protocol="skill")        # only Skills
-            mesh.resolve("repository.read", protocol="mcp")               # only MCP tools
+            mesh.resolve("security.code.review")                            # any
+            mesh.resolve("security.code.review", kind="agent")              # only agents
+            mesh.resolve("security.code.review", kind="skill")              # only skills
+            mesh.resolve("security.code.review", protocol="a2a")            # only A2A
+            mesh.resolve("repository.read", kind="tool", protocol="mcp")   # tool + MCP
         """
         from capmesh.models.resolution import CallerContext, ResolveRequest
         caller = CallerContext(identity=identity, environment=environment)
 
-        if protocol is None:
+        if kind is None and protocol is None:
             return self._resolver.resolve(ResolveRequest(
                 capability=capability, contract=contract,
                 caller=caller, version_constraint=version,
             ))
 
-        return self._resolve_with_protocol(capability, contract, protocol, caller, version)
+        return self._resolve_with_filter(capability, contract, kind, protocol, caller, version)
 
-    def _resolve_with_protocol(self, capability, contract, protocol, caller, version):
-        """Resolve filtering by protocol. Iterates providers to find matching protocol."""
+    def _resolve_with_filter(self, capability, contract, kind, protocol, caller, version):
+        """Resolve filtering by kind and/or protocol."""
         from capmesh.resolver import ResolutionError
 
         providers = self._registry.providers_for(capability, contract)
         for p in providers:
+            # Filter by kind
+            if kind and p.kind.value != kind:
+                continue
+            # Filter by protocol
             manifest = self._registry.get(p.namespace, p.name, p.version)
-            if manifest and manifest.interface.protocol == protocol:
-                from capmesh.models.resolution import ResolveRequest
-                return self._resolver.resolve(ResolveRequest(
-                    capability=capability, contract=contract,
-                    caller=caller,
-                    version_constraint=f"=={p.version}",
-                ))
+            if manifest is None:
+                continue
+            if protocol and manifest.interface.protocol != protocol:
+                continue
+            # Match found — resolve with pinned version
+            from capmesh.models.resolution import ResolveRequest
+            return self._resolver.resolve(ResolveRequest(
+                capability=capability, contract=contract,
+                caller=caller,
+                version_constraint=f"=={p.version}",
+            ))
+
+        filters = []
+        if kind:
+            filters.append(f"kind={kind}")
+        if protocol:
+            filters.append(f"protocol={protocol}")
         raise ResolutionError(
-            f"no_match: no {protocol} provider for {capability}/{contract}"
+            f"no_match: no provider for {capability}/{contract} matching {', '.join(filters)}"
         )
 
     def discover(self, query: str, limit: int = 5):
