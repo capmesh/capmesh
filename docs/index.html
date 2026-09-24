@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CapMesh — Service Discovery for the Agentic World</title>
+    <title>CapMesh -- Service Discovery for the Agentic World</title>
     <style>
         :root {
             --bg: #0a0a0a;
@@ -22,12 +22,15 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg); color: var(--text);
-            line-height: 1.7; max-width: 900px; margin: 0 auto; padding: 40px 24px;
+            line-height: 1.7; max-width: 960px; margin: 0 auto; padding: 40px 24px;
         }
         h1 { font-size: 2.5em; margin: 40px 0 8px; color: var(--accent); }
         h2 { font-size: 1.6em; margin: 60px 0 16px; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
         h3 { font-size: 1.2em; margin: 30px 0 12px; color: var(--accent2); }
+        h4 { font-size: 1em; margin: 20px 0 8px; color: var(--accent3); }
         p { margin: 12px 0; }
+        ul, ol { margin: 12px 0 12px 24px; }
+        li { margin: 6px 0; }
         a { color: var(--accent); text-decoration: none; }
         a:hover { text-decoration: underline; }
         code {
@@ -37,8 +40,10 @@
         pre {
             background: var(--code-bg); padding: 20px; border-radius: 8px;
             overflow-x: auto; margin: 16px 0; border: 1px solid var(--border);
+            font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.88em;
+            line-height: 1.6;
         }
-        pre code { background: none; padding: 0; }
+        pre code { background: none; padding: 0; font-size: inherit; }
         .hero {
             text-align: center; padding: 60px 0 40px;
             border-bottom: 1px solid var(--border); margin-bottom: 40px;
@@ -58,25 +63,29 @@
             display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 20px 0;
             border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
         }
-        .comparison .col { padding: 24px; }
+        .comparison .col { padding: 20px; }
         .comparison .col:first-child { background: #1a0a0a; border-right: 1px solid var(--border); }
         .comparison .col:last-child { background: #0a1a0a; }
-        .comparison h4 { margin-bottom: 12px; }
+        .comparison h4 { margin-bottom: 12px; font-size: 0.95em; }
         .comparison .bad { color: var(--danger); }
         .comparison .good { color: var(--accent2); }
-        table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        .comparison pre { font-size: 0.82em; }
+        @media (max-width: 700px) { .comparison { grid-template-columns: 1fr; } }
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.93em; }
         th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); }
-        th { color: var(--accent); font-weight: 600; }
+        th { color: var(--accent); font-weight: 600; background: var(--surface); }
+        tr:hover td { background: var(--surface); }
         .diagram {
             background: var(--surface); border: 1px solid var(--border);
             border-radius: 8px; padding: 24px; margin: 20px 0;
-            font-family: monospace; white-space: pre; line-height: 1.4;
-            color: var(--text-dim); overflow-x: auto;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            white-space: pre; line-height: 1.5;
+            color: var(--text-dim); overflow-x: auto; font-size: 0.85em;
         }
-        .highlight { color: var(--accent); }
+        .highlight  { color: var(--accent); }
         .highlight2 { color: var(--accent2); }
         .highlight3 { color: var(--accent3); }
-        .warn { color: var(--danger); }
+        .warn       { color: var(--danger); }
         .section-num {
             display: inline-block; background: var(--accent); color: var(--bg);
             width: 28px; height: 28px; border-radius: 50%; text-align: center;
@@ -86,20 +95,41 @@
         @media (max-width: 700px) { .benefit-grid { grid-template-columns: 1fr; } }
         .benefit-card {
             background: var(--surface); border: 1px solid var(--border);
-            border-radius: 8px; padding: 20px; text-align: center;
+            border-radius: 8px; padding: 20px;
         }
-        .benefit-card .icon { font-size: 2em; margin-bottom: 8px; }
-        .benefit-card h4 { color: var(--accent2); margin-bottom: 6px; }
+        .benefit-card h4 { color: var(--accent2); margin-bottom: 6px; margin-top: 0; }
         .benefit-card p { color: var(--text-dim); font-size: 0.9em; }
         .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin: 20px 0; }
-        .toc a { display: block; padding: 4px 0; color: var(--text-dim); }
+        .toc a { display: block; padding: 3px 0; color: var(--text-dim); font-size: 0.95em; }
         .toc a:hover { color: var(--accent); }
+        .toc .toc-sub { padding-left: 20px; }
         .callout {
             background: var(--surface2); border-left: 4px solid var(--accent);
             padding: 16px 20px; margin: 20px 0; border-radius: 0 8px 8px 0;
         }
         .callout.warn-box { border-left-color: var(--danger); }
         .callout.success-box { border-left-color: var(--accent2); }
+        .callout.info-box { border-left-color: var(--accent3); }
+        .label {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 0.78em; font-weight: 700; margin-left: 6px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+        .label-mcp  { background: #1a2a3a; color: var(--accent); border: 1px solid var(--accent); }
+        .label-a2a  { background: #1a2a1a; color: var(--accent2); border: 1px solid var(--accent2); }
+        .label-rest { background: #2a2a1a; color: var(--accent3); border: 1px solid var(--accent3); }
+        .label-skill{ background: #2a1a2a; color: #ce93d8; border: 1px solid #ce93d8; }
+        .output-box {
+            background: #0a0f0a; border: 1px solid #1a3a1a;
+            border-radius: 8px; padding: 20px; margin: 8px 0 16px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em; line-height: 1.6; white-space: pre; overflow-x: auto;
+            color: var(--accent2);
+        }
+        .cmd-table { margin: 20px 0; }
+        .cmd-table table { font-size: 0.88em; }
+        .badge { display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 7px; font-size: 0.8em; color: var(--text-dim); }
+        hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
     </style>
 </head>
 <body>
@@ -107,174 +137,692 @@
 <div class="hero">
     <h1>CapMesh</h1>
     <p class="tagline">Service Discovery for the Agentic World</p>
-    <p class="oneliner">Dynamically discover and bind Agents, Skills and Tools by capability.</p>
-    <p style="margin-top: 20px;">
+    <p class="oneliner">Build, push, pull and resolve Agents, Tools and Skills -- like Docker, but for capabilities.</p>
+    <p style="margin-top:20px; color: var(--text-dim);">
         <a href="https://github.com/capmesh/capmesh">GitHub</a> &nbsp;|&nbsp;
-        <code>pip install capmesh</code>
+        <code>pip install capmesh</code> &nbsp;|&nbsp;
+        Apache 2.0
     </p>
 </div>
 
+<!-- ============================================================ -->
+<!-- TABLE OF CONTENTS -->
+<!-- ============================================================ -->
 <div class="toc">
     <strong>Contents</strong>
     <a href="#why">1. Why CapMesh?</a>
-    <a href="#principles">2. Design Principles</a>
-    <a href="#architecture">3. Architecture</a>
-    <a href="#how-it-works">4. How It Works</a>
-    <a href="#mcp-integration">5. MCP Server Integration</a>
-    <a href="#natural-language">6. Natural Language Discovery</a>
-    <a href="#governance">7. Security &amp; Governance</a>
-    <a href="#runtime">8. Runtime &amp; Production</a>
-    <a href="#benefits">9. Benefits</a>
-    <a href="#getting-started">10. Getting Started</a>
+    <a href="#concepts">2. Core Concepts</a>
+    <a href="#cli">3. CLI Reference -- Docker Commands Side-by-Side</a>
+    <a class="toc-sub" href="#cli-build">  build / push / pull / tag / inspect / search</a>
+    <a class="toc-sub" href="#cli-capmesh-only">  resolve / providers / graph / login / server</a>
+    <a href="#build-providers">4. Build Providers -- Complete Working Examples</a>
+    <a class="toc-sub" href="#build-mcp">  a) MCP Tool</a>
+    <a class="toc-sub" href="#build-a2a">  b) A2A Agent</a>
+    <a class="toc-sub" href="#build-skill">  c) Skill</a>
+    <a class="toc-sub" href="#build-rest">  d) REST Tool</a>
+    <a href="#runtime-endpoints">5. Runtime API Endpoints -- What Providers Expose</a>
+    <a href="#use-providers">6. Use Providers -- Resolve and Call</a>
+    <a class="toc-sub" href="#use-python">  a) Python SDK</a>
+    <a class="toc-sub" href="#use-http">  b) Raw HTTP API</a>
+    <a class="toc-sub" href="#use-binding">  c) Using the Binding to Call the Service</a>
+    <a href="#backward-compat">7. Backward Compatibility -- Zero Code Changes to Providers</a>
+    <a href="#in-action">8. In Action -- Three Scenarios</a>
+    <a class="toc-sub" href="#scenario-pr">  a) PR Review Pipeline</a>
+    <a class="toc-sub" href="#scenario-swap">  b) Provider Swap</a>
+    <a class="toc-sub" href="#scenario-dynamic">  c) Dynamic Discovery</a>
+    <a href="#governance">9. Governance -- Policies, Visibility, Approval, Audit</a>
+    <a href="#api-reference">10. API Reference</a>
+    <a href="#getting-started">11. Getting Started</a>
 </div>
 
 <!-- ============================================================ -->
 <h2 id="why"><span class="section-num">1</span> Why CapMesh?</h2>
 
-<h3>The Problem</h3>
+<p>Every agentic application today hardcodes which tools, agents, and services it calls. When a tool changes -- or when you need to swap GitHub for GitLab, or Snyk for Semgrep -- you hunt through code, update imports, rewrite tests, and redeploy. With a dozen agents, this is a crisis every quarter.</p>
 
-<p>Every agentic application today hardcodes its tools, agents, and skills:</p>
+<p>CapMesh solves this the way DNS solved IP address management: <strong>name what you need, not where it lives.</strong> Consumers ask for a <em>capability</em> ("security scan"). CapMesh returns the best available provider, enforcing governance, versioning, and environment isolation along the way. The consumer calls the provider directly using the returned binding. No proxy, no overhead.</p>
 
 <div class="comparison">
     <div class="col">
-        <h4 class="bad">Without CapMesh (today)</h4>
-<pre><code>from tools.github import GitHubReader
+        <h4 class="bad">Without CapMesh</h4>
+<pre>from tools.github import GitHubReader
 from tools.snyk import SnykScanner
-from agents.langgraph import SecurityAgent
+from agents.crewai import SecurityAgent
 
-repo = GitHubReader()        # HARDCODED
-scanner = SnykScanner()      # HARDCODED
-agent = SecurityAgent()      # HARDCODED</code></pre>
-        <p>Change any tool = change code, update tests, redeploy.</p>
+# Every dependency is hardcoded.
+# Change Snyk to Semgrep?  Rewrite + redeploy.
+# Swap GitHub to GitLab?   Rewrite + redeploy.
+# Restrict an intern?      Add middleware.
+# Audit tool usage?        Not possible.
+
+repo    = GitHubReader(token=SECRET)
+scanner = SnykScanner(api_key=OTHER_SECRET)
+agent   = SecurityAgent(endpoint=HARDCODED_URL)</pre>
     </div>
     <div class="col">
         <h4 class="good">With CapMesh</h4>
-<pre><code>binding = resolver.need("read a repository")
-# -> GitLab, GitHub, Bitbucket — whatever is best
+<pre>from capmesh import Resolver
 
-binding = resolver.need("security scan")
-# -> Snyk, Semgrep — whatever is approved
+r = Resolver(base_url="http://capmesh:8080")
 
-binding = resolver.need("notify the team")
-# -> Slack, Teams — whatever is configured</code></pre>
-        <p>Swap tools = one registry command. Zero code changes.</p>
+# Consumers ask for WHAT, not WHO.
+repo    = r.need("read a repository")
+scanner = r.need("security vulnerability scan")
+agent   = r.need("security code review")
+
+# Swap provider?  One registry command.
+# Restrict access? One YAML field.
+# Audit trail?    Automatic.</pre>
     </div>
 </div>
-
-<h3>What happens when requirements change?</h3>
 
 <table>
     <tr><th>Change</th><th>Without CapMesh</th><th>With CapMesh</th></tr>
-    <tr><td>Swap GitHub for GitLab</td><td class="warn">2-3 days (code + tests + deploy)</td><td class="highlight2">30 seconds (register new provider)</td></tr>
+    <tr><td>Swap GitHub for GitLab</td><td class="warn">2-3 days: code + tests + deploy</td><td class="highlight2">30 seconds: register new provider</td></tr>
     <tr><td>Upgrade Snyk to Semgrep</td><td class="warn">1-2 days</td><td class="highlight2">30 seconds</td></tr>
-    <tr><td>Restrict intern access</td><td class="warn">Days (middleware + ACLs)</td><td class="highlight2">1 YAML field</td></tr>
-    <tr><td>Audit what tools were used</td><td class="warn">Not possible</td><td class="highlight2">Automatic (every resolution traced)</td></tr>
-    <tr><td>Add new capability at runtime</td><td class="warn">Impossible without restart</td><td class="highlight2">Register + discover instantly</td></tr>
+    <tr><td>Restrict intern to staging only</td><td class="warn">Days: middleware + ACLs</td><td class="highlight2">One YAML field: environment: [staging]</td></tr>
+    <tr><td>Audit which tool was used</td><td class="warn">Not possible without custom logging</td><td class="highlight2">Automatic: every resolution is traced</td></tr>
+    <tr><td>Add a new capability at runtime</td><td class="warn">Impossible without restart + redeploy</td><td class="highlight2">Register + discoverable instantly</td></tr>
+    <tr><td>Pin a team to scanner v2.x only</td><td class="warn">Manual version gates in each repo</td><td class="highlight2">version_constraint: ">=2.0,&lt;3.0"</td></tr>
 </table>
 
 <!-- ============================================================ -->
-<h2 id="principles"><span class="section-num">2</span> Design Principles</h2>
-
-<div class="grid">
-    <div class="card">
-        <h4>Capability-First</h4>
-        <p>Consumers express WHAT they need, not WHO provides it. CapMesh discovers the best provider.</p>
-    </div>
-    <div class="card">
-        <h4>Framework-Agnostic</h4>
-        <p>LangGraph, CrewAI, Strands, AutoGen, Semantic Kernel — all register and resolve through the same API. Framework is metadata, not contract.</p>
-    </div>
-    <div class="card">
-        <h4>Compose, Don't Replace</h4>
-        <p>CapMesh sits alongside A2A, MCP, and Agent Skills. It doesn't replace them — it discovers which one to use.</p>
-    </div>
-    <div class="card">
-        <h4>Docker-Inspired Artifact Plane</h4>
-        <p>Build, push, pull, tag, inspect — same mental model as Docker, but for agents, tools, and skills.</p>
-    </div>
-    <div class="card">
-        <h4>Deterministic Resolution</h4>
-        <p>Highest semver wins. Exact contract match. No ML ranking in V1 — predictable and auditable.</p>
-    </div>
-    <div class="card">
-        <h4>Governance Built-In</h4>
-        <p>Approval status, visibility, environment isolation, version pinning, immutable digests — all in the manifest YAML.</p>
-    </div>
-</div>
-
-<!-- ============================================================ -->
-<h2 id="architecture"><span class="section-num">3</span> Architecture</h2>
+<h2 id="concepts"><span class="section-num">2</span> Core Concepts</h2>
 
 <h3>Two-Plane Architecture</h3>
 
-<div class="card">
-    <h4>Artifact Plane (Docker-inspired)</h4>
-    <p>Build, register, push, pull, tag, inspect. Manages the lifecycle of providers as versioned, immutable artifacts with sha256 digests.</p>
+<div class="grid">
+    <div class="card">
+        <h4>Artifact Plane (Docker-inspired)</h4>
+        <p>Build, push, pull, tag, inspect. Manages the lifecycle of providers as versioned, immutable artifacts with sha256 content digests. Same mental model as Docker images -- but for agents, tools, and skills.</p>
+    </div>
+    <div class="card">
+        <h4>Capability Plane (CapMesh differentiator)</h4>
+        <p>Resolve, discover, bind. Maps a capability name to the best available provider through a 9-step deterministic pipeline: find candidates, apply policy, filter by version constraint, select highest semver, build binding, record trace.</p>
+    </div>
 </div>
-<br>
-<div class="card">
-    <h4>Capability Plane (CapMesh differentiator)</h4>
-    <p>Resolve, discover, bind. Maps capability needs to providers through a deterministic pipeline: find candidates &rarr; policy &rarr; version &rarr; select &rarr; bind &rarr; trace.</p>
-</div>
 
-<h3>System Diagram</h3>
-
-<div class="diagram"><span class="highlight">Your Agent App</span>              <span class="highlight2">CapMesh Server</span>              <span class="highlight3">Providers</span>
-+------------------+       +------------------+       +------------------+
-|                  |       |                  |       |                  |
-|  POST /v1/resolve| ----> |  Registry        |       |  MCP servers     |
-|  {capability: X} |       |  Resolver        |       |  A2A agents      |
-|                  | <---- |  Policy Engine   |       |  REST APIs       |
-|  {provider,      |       |  Trace Store     |       |  Skills          |
-|   protocol,      |       |                  |       |                  |
-|   endpoint}      |       +--------+---------+       +------------------+
-|                  |                |
-+------+-----------+         SQLite + YAML
-       |                    (local storage)
-       v
- Call the provider
- using returned binding</div>
-
-<h3>Three Provider Types</h3>
+<h3>Four Provider Types</h3>
 
 <table>
-    <tr><th>Type</th><th>Protocol</th><th>Interface</th><th>Example</th></tr>
-    <tr><td><strong>Tool</strong></td><td>MCP / REST</td><td>Server name, endpoint, auth</td><td>GitHub MCP server, SonarQube REST API</td></tr>
-    <tr><td><strong>Agent</strong></td><td>A2A</td><td>Agent endpoint URL</td><td>LangGraph security reviewer, CrewAI data analyst</td></tr>
-    <tr><td><strong>Skill</strong></td><td>Skill</td><td>SKILL.md + auto-resolved tool deps</td><td>Security code review procedure</td></tr>
+    <tr><th>Type</th><th>Protocol</th><th>Runtime Endpoint</th><th>Example</th></tr>
+    <tr>
+        <td><strong>MCP Tool</strong> <span class="label label-mcp">MCP</span></td>
+        <td>MCP (JSON-RPC)</td>
+        <td>Server name registered in the MCP client (e.g., <code>github-mcp</code>)</td>
+        <td>GitHub MCP server, filesystem-mcp</td>
+    </tr>
+    <tr>
+        <td><strong>A2A Agent</strong> <span class="label label-a2a">A2A</span></td>
+        <td>A2A (HTTP)</td>
+        <td>Full HTTPS URL the agent listens on (e.g., <code>https://security-agent.acme.com</code>)</td>
+        <td>LangGraph reviewer, CrewAI analyst</td>
+    </tr>
+    <tr>
+        <td><strong>REST Tool</strong> <span class="label label-rest">REST</span></td>
+        <td>HTTP/REST</td>
+        <td>Full API base URL (e.g., <code>https://api.sonarcloud.io/v1</code>)</td>
+        <td>SonarCloud, Datadog, Twilio</td>
+    </tr>
+    <tr>
+        <td><strong>Skill</strong> <span class="label label-skill">SKILL</span></td>
+        <td>Skill (SKILL.md)</td>
+        <td>Path to the SKILL.md file; CapMesh resolves tool deps separately</td>
+        <td>Security review procedure, triage runbook</td>
+    </tr>
 </table>
 
-<h3>Resolver Pipeline (9 Steps)</h3>
-
-<div class="card">
-<pre style="background:none;border:none;padding:0;margin:0"><code>1. <span class="highlight">Find candidates</span>     — registry.providers_for(capability, contract)
-2. Filter revoked        — governance status check
-3. Health check          — cached health status (stub in V1)
-4. Contract match        — exact contract version (v1 never matches v2)
-5. <span class="highlight2">Apply policy</span>         — visibility, environment, status rules
-6. Version constraint    — semver filtering (>=2.0,<3.0)
-7. <span class="highlight3">Select best</span>          — highest semver among approved candidates
-8. Build binding         — protocol-specific connection via adapter
-9. Record trace          — full audit trail in SQLite</code></pre>
+<div class="callout">
+    <strong>Key insight:</strong> CapMesh does NOT host your agents or tools. It is a <em>registry and resolver</em> -- like DNS. The provider runs wherever you want. CapMesh tells consumers where to find it and which one to use.
 </div>
 
+<h3>Architecture Diagram</h3>
+
+<div class="diagram"><span class="highlight">Consumer (Your Agent / Pipeline)</span>
+         |
+         |  POST /v1/resolve {"capability": "security.code.review", "contract": "v1"}
+         v
+<span class="highlight2">+------------------------------- CapMesh Server ---------------------------------+</span>
+|                                                                                 |
+|  Registry (SQLite)                                                              |
+|    providers_for(capability, contract)                                          |
+|       |                                                                         |
+|       v                                                                         |
+|  Resolver Pipeline                                                              |
+|    1. find candidates       -- all providers claiming this capability           |
+|    2. filter revoked        -- governance.status != revoked                     |
+|    3. health check          -- liveness cache                                   |
+|    4. contract match        -- exact contract version (v1 != v2)                |
+|    5. apply policy          -- visibility, environment, owner                   |
+|    6. version constraint    -- semver filter (e.g., >=2.0,&lt;3.0)              |
+|    7. select best           -- highest semver among approved                    |
+|    8. build binding         -- protocol-specific connection object              |
+|    9. record trace          -- SQLite trace with full candidate list            |
+|                                                                                 |
++------------------------------- Returns binding --------------------------------+
+         |
+         |  {protocol: "a2a", connection: {endpoint: "https://security-agent.acme.com"}}
+         v
+<span class="highlight3">Consumer calls the provider directly using the returned binding.</span>
+CapMesh is NOT in the data path.  Zero latency added to actual tool calls.
+
+<span class="highlight3">Providers run wherever the PROVIDER team deploys them:</span>
+  +---------------------+  +---------------------+  +---------------------+
+  | A2A Agent           |  | MCP Server          |  | REST API            |
+  | https://agent.acme  |  | server name:        |  | https://api.sonar.  |
+  |                     |  | github-mcp          |  | cloud.io/v1         |
+  +---------------------+  +---------------------+  +---------------------+</div>
+
 <!-- ============================================================ -->
-<h2 id="how-it-works"><span class="section-num">4</span> How It Works</h2>
+<h2 id="cli"><span class="section-num">3</span> CLI Reference -- Docker Commands Side-by-Side</h2>
 
-<h3>Step 1: Write a manifest</h3>
+<p>CapMesh borrows Docker's mental model for the artifact plane. Every Docker workflow you know maps directly to a CapMesh command.</p>
 
-<p>A manifest is a YAML file describing what a provider offers, how to connect to it, and who controls it.</p>
+<!-- ---- BUILD ---- -->
+<h3 id="cli-build">capmesh tool build &nbsp;<span class="badge">docker build</span></h3>
 
-<pre><code># Agent manifest — a security reviewer built with CrewAI
+<p>Validate a manifest and compute its content digest. Does not register it yet -- just proves the manifest is well-formed.</p>
+
+<div class="comparison">
+    <div class="col">
+        <h4 class="bad">Docker</h4>
+<pre>docker build -t myapp:1.0.0 .</pre>
+    </div>
+    <div class="col">
+        <h4 class="good">CapMesh</h4>
+<pre>capmesh tool build --directory ./github-reader/
+capmesh agent build --directory ./security-agent/
+capmesh skill build --directory ./code-review-skill/</pre>
+    </div>
+</div>
+
+<p>Flags:</p>
+<table>
+    <tr><th>Flag</th><th>Description</th><th>Default</th></tr>
+    <tr><td><code>--directory, -d</code></td><td>Directory containing manifest.yaml</td><td><code>.</code></td></tr>
+    <tr><td><code>--file, -f</code></td><td>Explicit path to manifest.yaml</td><td>--</td></tr>
+    <tr><td><code>--strict</code></td><td>Fail on any warning</td><td>false</td></tr>
+</table>
+
+<p>Example output -- building an MCP tool:</p>
+<div class="output-box">$ capmesh tool build --directory ./github-reader/
+
+Validating manifest: ./github-reader/manifest.yaml
+  [OK] Required fields present
+  [OK] Capability IDs valid (repository.read, repository.search)
+  [OK] Contract versions valid (v1)
+  [OK] Semver valid (2.3.1)
+  [OK] Governance fields present (status: approved)
+  [OK] Interface fields present (protocol: mcp, server: github-mcp)
+
+Build summary
+  Kind:        tool
+  Protocol:    mcp
+  Name:        tools/github-reader
+  Version:     2.3.1
+  Digest:      sha256:7a3f9c12d8e5b024f1a6c3d9e7f2b841a0c5d3e8f9b2a7c4d1e6f3b0a8c5d2e9
+  Provides:    repository.read/v1, repository.search/v1
+  Status:      VALID -- ready to push</div>
+
+<!-- ---- PUSH ---- -->
+<h3>capmesh tool push &nbsp;<span class="badge">docker push</span></h3>
+
+<p>Register (push) a validated provider into the CapMesh registry. Equivalent to pushing an image to Docker Hub.</p>
+
+<div class="comparison">
+    <div class="col">
+        <h4 class="bad">Docker</h4>
+<pre>docker push myrepo/myapp:1.0.0</pre>
+    </div>
+    <div class="col">
+        <h4 class="good">CapMesh</h4>
+<pre>capmesh tool push --file ./github-reader/manifest.yaml
+capmesh agent push --file ./security-agent/manifest.yaml</pre>
+    </div>
+</div>
+
+<p>Flags:</p>
+<table>
+    <tr><th>Flag</th><th>Description</th><th>Default</th></tr>
+    <tr><td><code>--file, -f</code></td><td>Path to manifest.yaml</td><td>required</td></tr>
+    <tr><td><code>--registry, -r</code></td><td>CapMesh server URL</td><td><code>http://localhost:8080</code></td></tr>
+    <tr><td><code>--overwrite</code></td><td>Replace an existing draft (not allowed for approved versions)</td><td>false</td></tr>
+</table>
+
+<div class="output-box">$ capmesh tool push --file ./github-reader/manifest.yaml --registry http://capmesh:8080
+
+Connecting to registry: http://capmesh:8080
+  Authenticated as: platform-eng (org: acme-corp)
+
+Checking for conflicts...
+  tools/github-reader:2.3.0 -- exists, different version, OK
+  tools/github-reader:2.3.1 -- new version, no conflict
+
+Pushing tools/github-reader:2.3.1
+  Uploading manifest... done
+  Computing digest... sha256:7a3f9c12d8e5b024f1a6c3d9e7f2b841a0c5d3e8f9b2a7c4d1e6f3b0a8c5d2e9
+  Indexing capabilities: repository.read/v1, repository.search/v1
+  Status: approved
+
+Pushed tools/github-reader:2.3.1
+  Capabilities now resolvable: repository.read/v1, repository.search/v1</div>
+
+<div class="callout info-box">
+    <strong>Immutability:</strong> Once a version is pushed with <code>status: approved</code>, its content is locked to that digest. Attempting to push the same version number with different content returns an error. This is the same guarantee as Docker content-addressable layers.
+</div>
+
+<!-- ---- PULL ---- -->
+<h3>capmesh tool pull &nbsp;<span class="badge">docker pull</span></h3>
+
+<p>Download a provider manifest from the registry to local disk -- useful for inspection, forking, or offline use.</p>
+
+<div class="comparison">
+    <div class="col">
+        <h4 class="bad">Docker</h4>
+<pre>docker pull myrepo/myapp:1.0.0</pre>
+    </div>
+    <div class="col">
+        <h4 class="good">CapMesh</h4>
+<pre>capmesh tool pull tools/github-reader:2.3.1
+capmesh agent pull security/crewai-reviewer:3.1.0</pre>
+    </div>
+</div>
+
+<div class="output-box">$ capmesh tool pull tools/github-reader:2.3.1 --output ./local/
+
+Pulling tools/github-reader:2.3.1 from http://capmesh:8080
+  Fetching manifest...  done
+  Verifying digest... sha256:7a3f9c12d8e5b024f1a6c3d9e7f2b841a0c5d3e8f9b2a7c4d1e6f3b0a8c5d2e9 OK
+
+Saved to ./local/github-reader-2.3.1/
+  manifest.yaml    (1.4 KB)
+  SKILL.md         (not present for tool providers)
+
+Pull complete.  Verify locally with: capmesh tool build --directory ./local/github-reader-2.3.1/</div>
+
+<!-- ---- SEARCH ---- -->
+<h3>capmesh search &nbsp;<span class="badge">docker images / docker search</span></h3>
+
+<p>List all registered providers, optionally filtering by capability, type, or status.</p>
+
+<div class="comparison">
+    <div class="col">
+        <h4 class="bad">Docker</h4>
+<pre>docker images
+docker search ubuntu</pre>
+    </div>
+    <div class="col">
+        <h4 class="good">CapMesh</h4>
+<pre>capmesh search
+capmesh search --capability security.code.review
+capmesh search --type agent
+capmesh search --query "security scan"</pre>
+    </div>
+</div>
+
+<p>Flags:</p>
+<table>
+    <tr><th>Flag</th><th>Description</th></tr>
+    <tr><td><code>--capability</code></td><td>Filter by exact capability ID</td></tr>
+    <tr><td><code>--type</code></td><td>Filter by kind: tool | agent | skill</td></tr>
+    <tr><td><code>--query</code></td><td>Natural language keyword search</td></tr>
+    <tr><td><code>--status</code></td><td>Filter by governance status (approved | deprecated | revoked)</td></tr>
+    <tr><td><code>--namespace</code></td><td>Filter to one namespace</td></tr>
+    <tr><td><code>--json</code></td><td>Output as JSON array</td></tr>
+</table>
+
+<div class="output-box">$ capmesh search --capability security.code.review
+
+NAMESPACE   NAME                        VERSION  TYPE   PROTOCOL  STATUS      DIGEST
+security    crewai-security-reviewer    3.1.0    agent  a2a       approved    sha256:3f9f55a4
+security    langgraph-security-reviewer 2.4.0    agent  a2a       approved    sha256:9b2c71e8
+security    code-review-skill           1.2.0    skill  skill     approved    sha256:4d7a8b3c
+security    openai-reviewer             2.0.0    agent  a2a       deprecated  sha256:1a2b3c4d
+
+4 providers found for capability: security.code.review
+Resolution would select: security/crewai-security-reviewer:3.1.0 (highest approved semver)</div>
+
+<div class="output-box">$ capmesh search --query "notify the team" --json
+
+[
+  {
+    "namespace": "comms",
+    "name": "slack-notifier",
+    "version": "4.0.2",
+    "kind": "tool",
+    "protocol": "mcp",
+    "capabilities": ["notification.send", "notification.dm"],
+    "status": "approved",
+    "score": 0.92
+  },
+  {
+    "namespace": "comms",
+    "name": "teams-notifier",
+    "version": "2.1.0",
+    "kind": "tool",
+    "protocol": "rest",
+    "capabilities": ["notification.send"],
+    "status": "approved",
+    "score": 0.78
+  }
+]</div>
+
+<!-- ---- INSPECT ---- -->
+<h3>capmesh tool inspect &nbsp;<span class="badge">docker inspect</span></h3>
+
+<p>Print full details of a registered provider, including governance, interface, and all capabilities.</p>
+
+<div class="comparison">
+    <div class="col">
+        <h4 class="bad">Docker</h4>
+<pre>docker inspect myrepo/myapp:1.0.0</pre>
+    </div>
+    <div class="col">
+        <h4 class="good">CapMesh</h4>
+<pre>capmesh tool inspect tools/github-reader:2.3.1
+capmesh agent inspect security/crewai-reviewer:3.1.0</pre>
+    </div>
+</div>
+
+<div class="output-box">$ capmesh agent inspect security/crewai-security-reviewer:3.1.0
+
+Provider: security/crewai-security-reviewer:3.1.0
+  Kind:        agent
+  Protocol:    a2a
+  Digest:      sha256:3f9f55a43b3cf6fa8d2b1c90e7f4a528b6c3d9e1f7a2b4c8d5e0f3a6b9c2d5e8
+  Pushed:      2026-09-20T11:44:02Z
+  Pushed by:   security-eng (org: acme-corp)
+
+Metadata
+  api_version: capmesh.io/v1alpha1
+  owner:       security-engineering
+  labels:
+    framework: crewai
+
+Governance
+  status:      approved
+  visibility:  public
+  environment: [production, staging]
+
+Interface
+  protocol:    a2a
+  endpoint:    https://crewai-security.acme.com
+
+Provides
+  - capability: security.code.review
+    contract:   v1
+    description: Review source code for security vulnerabilities, OWASP top 10, secrets
+
+Requires
+  - capability: repository.read   contract: v1
+  - capability: repository.search contract: v1
+
+Resolution stats (last 7 days)
+  Resolved: 847 times
+  Last resolved: 2026-09-23T09:12:34Z</div>
+
+<!-- ---- TAG ---- -->
+<h3>capmesh tag &nbsp;<span class="badge">docker tag</span></h3>
+
+<p>Create an alias pointing an existing provider to an additional name or version label.</p>
+
+<div class="comparison">
+    <div class="col">
+        <h4 class="bad">Docker</h4>
+<pre>docker tag myapp:1.0.0 myapp:latest
+docker tag myapp:1.0.0 myrepo/myapp:stable</pre>
+    </div>
+    <div class="col">
+        <h4 class="good">CapMesh</h4>
+<pre>capmesh tag security/crewai-reviewer:3.1.0 \
+    security/crewai-reviewer:stable
+
+capmesh tag tools/github-reader:2.3.1 \
+    tools/github-reader:latest</pre>
+    </div>
+</div>
+
+<div class="output-box">$ capmesh tag security/crewai-security-reviewer:3.1.0 security/crewai-security-reviewer:stable
+
+Tagged security/crewai-security-reviewer:3.1.0 as security/crewai-security-reviewer:stable
+Tag points to digest: sha256:3f9f55a43b3cf6fa...</div>
+
+<!-- ---- LOGIN ---- -->
+<h3>capmesh login &nbsp;<span class="badge">docker login</span></h3>
+
+<p>Authenticate to a CapMesh registry. Credentials are stored in <code>~/.capmesh/config.json</code>.</p>
+
+<div class="comparison">
+    <div class="col">
+        <h4 class="bad">Docker</h4>
+<pre>docker login registry.example.com</pre>
+    </div>
+    <div class="col">
+        <h4 class="good">CapMesh</h4>
+<pre>capmesh login http://capmesh.acme.com:8080
+capmesh login --token $CAPMESH_TOKEN http://capmesh.acme.com:8080</pre>
+    </div>
+</div>
+
+<div class="output-box">$ capmesh login http://capmesh.acme.com:8080
+
+Username: alice
+Password: **************
+
+Login succeeded
+  Registry:    http://capmesh.acme.com:8080
+  Identity:    alice (org: acme-corp, role: publisher)
+  Token saved: ~/.capmesh/config.json</div>
+
+<!-- ---- SERVER START ---- -->
+<h3>capmesh server start &nbsp;<span class="badge">docker run (for the registry)</span></h3>
+
+<p>Start the CapMesh registry server. Equivalent to running the registry container.</p>
+
+<div class="comparison">
+    <div class="col">
+        <h4 class="bad">Docker (running the registry)</h4>
+<pre>docker run -d \
+  -p 5000:5000 \
+  -v registry-data:/var/lib/registry \
+  registry:2</pre>
+    </div>
+    <div class="col">
+        <h4 class="good">CapMesh</h4>
+<pre>capmesh server start --port 8080 \
+  --db /data/capmesh.db \
+  --host 0.0.0.0</pre>
+    </div>
+</div>
+
+<p>Flags:</p>
+<table>
+    <tr><th>Flag</th><th>Description</th><th>Default</th></tr>
+    <tr><td><code>--port</code></td><td>Port to listen on</td><td><code>8080</code></td></tr>
+    <tr><td><code>--host</code></td><td>Bind address</td><td><code>127.0.0.1</code></td></tr>
+    <tr><td><code>--db</code></td><td>Path to SQLite database</td><td><code>./capmesh.db</code></td></tr>
+    <tr><td><code>--log-level</code></td><td>debug | info | warn | error</td><td><code>info</code></td></tr>
+    <tr><td><code>--cors</code></td><td>Allowed CORS origins (comma-separated)</td><td>disabled</td></tr>
+</table>
+
+<div class="output-box">$ capmesh server start --port 8080 --host 0.0.0.0 --db /data/capmesh.db
+
+CapMesh Registry Server v0.9.0
+  Listening: 0.0.0.0:8080
+  Database:  /data/capmesh.db (new)
+  Auth:      disabled (set CAPMESH_AUTH_TOKEN to enable)
+
+[2026-09-23 09:00:01] INFO  Server ready
+[2026-09-23 09:00:01] INFO  GET  /healthz -> 200 OK
+[2026-09-23 09:00:15] INFO  POST /v1/providers/register -> 201 Created (tools/github-reader:2.3.1)
+[2026-09-23 09:00:22] INFO  POST /v1/resolve -> 200 OK (security.code.review -> crewai-reviewer:3.1.0, 14ms)</div>
+
+<!-- ---- CAPMESH-ONLY COMMANDS ---- -->
+<h3 id="cli-capmesh-only">CapMesh-Only Commands (no Docker equivalent)</h3>
+
+<h4>capmesh resolve</h4>
+<p>Resolve a capability to its best provider right now, showing the full resolution trace.</p>
+
+<pre>capmesh resolve &lt;capability&gt; [--contract v1] [--caller identity] [--env production] [--constraint ">=2.0,&lt;3.0"] [--trace]</pre>
+
+<div class="output-box">$ capmesh resolve security.code.review \
+    --contract v1 \
+    --caller ci-pipeline \
+    --env production \
+    --trace
+
+Resolving security.code.review/v1
+  Caller:      ci-pipeline
+  Environment: production
+
+Step 1 -- Find candidates (4 found)
+  security/crewai-security-reviewer:3.1.0
+  security/langgraph-security-reviewer:2.4.0
+  security/code-review-skill:1.2.0
+  security/openai-reviewer:2.0.0
+
+Step 2 -- Filter revoked
+  [PASS] crewai-security-reviewer:3.1.0     (approved)
+  [PASS] langgraph-security-reviewer:2.4.0  (approved)
+  [PASS] code-review-skill:1.2.0            (approved)
+  [SKIP] openai-reviewer:2.0.0              (deprecated)
+
+Step 3 -- Health check
+  [PASS] all 3 candidates healthy (cached)
+
+Step 4 -- Contract match (v1)
+  [PASS] all 3 match contract v1
+
+Step 5 -- Policy (visibility: public, env: production)
+  [PASS] crewai-security-reviewer:3.1.0     (env: [production, staging])
+  [PASS] langgraph-security-reviewer:2.4.0  (env: [production, staging])
+  [PASS] code-review-skill:1.2.0            (env: [production])
+
+Step 6 -- Version constraint (none)
+  [PASS] all 3 pass
+
+Step 7 -- Select best (highest semver)
+  Selected: security/crewai-security-reviewer:3.1.0
+
+Step 8 -- Build binding
+  Protocol:  a2a
+  Endpoint:  https://crewai-security.acme.com
+
+Step 9 -- Trace recorded
+  Trace ID:  res_8444e343826b
+  Latency:   16 ms
+
+Result:
+  provider:  security/crewai-security-reviewer:3.1.0
+  protocol:  a2a
+  endpoint:  https://crewai-security.acme.com</div>
+
+<h4>capmesh providers</h4>
+<p>List all providers for a specific capability, showing what would win resolution.</p>
+
+<pre>capmesh providers &lt;capability&gt; [--contract v1] [--verbose]</pre>
+
+<div class="output-box">$ capmesh providers repository.read --contract v1 --verbose
+
+Providers for: repository.read/v1
+
+  RANK  NAME                          VERSION  PROTOCOL  STATUS      ENV
+  1     tools/github-reader           2.3.1    mcp       approved    [production, staging]
+  2     tools/gitlab-reader           2.0.0    mcp       approved    [production, staging, dev]
+  3     tools/bitbucket-reader        1.8.5    mcp       approved    [staging, dev]
+  4     tools/github-reader           2.2.0    mcp       deprecated  [production, staging]
+
+  Resolution would select: tools/github-reader:2.3.1 (for env=production, unconstrained)</div>
+
+<h4>capmesh graph</h4>
+<p>Print the dependency graph for a provider -- what it requires and what provides those requirements.</p>
+
+<pre>capmesh graph &lt;namespace/name:version&gt;</pre>
+
+<div class="output-box">$ capmesh graph security/crewai-security-reviewer:3.1.0
+
+Dependency graph: security/crewai-security-reviewer:3.1.0
+
+  security/crewai-security-reviewer:3.1.0  [a2a agent]
+    requires: repository.read/v1
+      --> tools/github-reader:2.3.1         [mcp tool]  (would resolve to this)
+      --> tools/gitlab-reader:2.0.0         [mcp tool]  (also available)
+    requires: repository.search/v1
+      --> tools/github-reader:2.3.1         [mcp tool]  (would resolve to this, same server)
+
+  Total transitive dependencies: 1 unique provider (github-reader:2.3.1)
+  Full swap possible:  yes  (gitlab-reader covers both capabilities)</div>
+
+<!-- ============================================================ -->
+<h2 id="build-providers"><span class="section-num">4</span> Build Providers -- Complete Working Examples</h2>
+
+<!-- ---- MCP TOOL ---- -->
+<h3 id="build-mcp">a) Build an MCP Tool <span class="label label-mcp">MCP</span></h3>
+
+<p>An MCP tool wraps an existing MCP server. You do NOT rewrite the server. You write a manifest.yaml that tells CapMesh what capabilities this server provides and where to find it.</p>
+
+<p><strong>Scenario:</strong> The platform team has a <code>github-mcp</code> MCP server running. They want to register it so any agent can discover and use it.</p>
+
+<pre># ./github-reader/manifest.yaml
+
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  name: github-reader
+  namespace: tools
+  owner: platform-engineering
+  version: "2.3.1"
+
 governance:
   status: approved
   visibility: public
   environment: [production, staging]
-  labels:
-    framework: crewai
+
 interface:
-  protocol: a2a
-  endpoint: https://crewai-security.example.com
+  protocol: mcp
+  server: github-mcp                  # the MCP server name known to the MCP client
+  tools:
+    - read_file
+    - search_code
+    - list_files
+
+provides:
+  - capability: repository.read
+    contract: v1
+    description: Read files and directories from a GitHub repository
+
+  - capability: repository.search
+    contract: v1
+    description: Search code within a GitHub repository</pre>
+
+<p>Build and push:</p>
+
+<div class="output-box">$ capmesh tool build --directory ./github-reader/
+
+  [OK] Required fields present
+  [OK] Interface: protocol=mcp, server=github-mcp
+  [OK] Capabilities: repository.read/v1, repository.search/v1
+  [OK] Semver: 2.3.1
+  Digest: sha256:7a3f9c12d8e5b024f1a6c3d9e7f2b841a0c5d3e8f9b2a7c4d1e6f3b0a8c5d2e9
+  Status: VALID
+
+$ capmesh tool push --file ./github-reader/manifest.yaml
+
+  Pushing tools/github-reader:2.3.1...
+  Indexed capabilities: repository.read/v1, repository.search/v1
+  Pushed tools/github-reader:2.3.1
+
+  Verify: capmesh tool inspect tools/github-reader:2.3.1</div>
+
+<!-- ---- A2A AGENT ---- -->
+<h3 id="build-a2a">b) Build an A2A Agent <span class="label label-a2a">A2A</span></h3>
+
+<p>An A2A agent exposes an HTTP endpoint that implements the A2A protocol. You declare the <code>framework</code> label so consumers know what kind of agent to expect, but CapMesh is framework-agnostic -- it just stores the label as metadata.</p>
+
+<p><strong>Scenario:</strong> The security team has a CrewAI-based security reviewer deployed at <code>https://crewai-security.acme.com</code>. They register it so any pipeline can discover it.</p>
+
+<pre># ./security-agent/manifest.yaml
+
 metadata:
   api_version: capmesh.io/v1alpha1
   kind: agent
@@ -282,390 +830,1232 @@ metadata:
   namespace: security
   owner: security-engineering
   version: "3.1.0"
+  labels:
+    framework: crewai                # metadata only -- not enforced by CapMesh
+
+governance:
+  status: approved
+  visibility: public
+  environment: [production, staging]
+
+interface:
+  protocol: a2a
+  endpoint: https://crewai-security.acme.com   # where the agent is ACTUALLY running
+
 provides:
   - capability: security.code.review
     contract: v1
-    description: Review code for security vulnerabilities
+    description: >
+      Review source code for security vulnerabilities (OWASP Top 10,
+      secrets exposure, dependency risks). Returns structured findings.
+
 requires:
   - capability: repository.read
-    contract: v1</code></pre>
+    contract: v1
+  - capability: repository.search
+    contract: v1</pre>
 
-<div class="callout">
-    <strong>Key insight:</strong> The manifest says <code>requires: repository.read</code> — not "requires GitHub" or "requires GitLab." The specific tool is resolved at bind time.
+<div class="output-box">$ capmesh agent build --directory ./security-agent/
+
+  [OK] Kind: agent
+  [OK] Protocol: a2a
+  [OK] Endpoint: https://crewai-security.acme.com (valid URL)
+  [OK] Framework label: crewai
+  [OK] Provides: security.code.review/v1
+  [OK] Requires: repository.read/v1, repository.search/v1
+  [OK] Semver: 3.1.0
+  Digest: sha256:3f9f55a43b3cf6fa8d2b1c90e7f4a528b6c3d9e1f7a2b4c8d5e0f3a6b9c2d5e8
+  Status: VALID
+
+$ capmesh agent push --file ./security-agent/manifest.yaml
+
+  Pushing security/crewai-security-reviewer:3.1.0...
+  Indexed capabilities: security.code.review/v1
+  Framework label stored: crewai
+  Pushed security/crewai-security-reviewer:3.1.0
+
+  Agents needing security.code.review will now discover this provider.</div>
+
+<!-- ---- SKILL ---- -->
+<h3 id="build-skill">c) Build a Skill <span class="label label-skill">SKILL</span></h3>
+
+<p>A Skill is a reusable procedure defined in a SKILL.md file. It contains human-readable (and LLM-readable) instructions. CapMesh resolves its tool dependencies separately at bind time, so the same skill works with GitHub, GitLab, or any other tool that satisfies the required capabilities.</p>
+
+<p><strong>Scenario:</strong> The engineering team writes a standard PR review procedure as a skill.</p>
+
+<pre># ./pr-review-skill/manifest.yaml
+
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: skill
+  name: pr-review
+  namespace: engineering
+  owner: platform-engineering
+  version: "1.0.0"
+
+governance:
+  status: approved
+  visibility: public
+  environment: [production, staging, dev]
+
+interface:
+  protocol: skill
+  skill_file: SKILL.md              # path relative to this manifest.yaml
+
+provides:
+  - capability: pr.review
+    contract: v1
+    description: >
+      Perform a full pull request review: read changed files,
+      run a security scan, check coding standards, summarize findings.
+
+requires:
+  - capability: repository.read
+    contract: v1
+  - capability: security.code.review
+    contract: v1
+  - capability: notification.send
+    contract: v1</pre>
+
+<pre># ./pr-review-skill/SKILL.md
+
+# PR Review Skill
+
+## Purpose
+Perform a structured pull request review using the tools provided by the caller's environment.
+
+## Steps
+
+1. **Read the diff**
+   Use the `repository.read` tool to fetch the list of changed files in the PR.
+   For each file, read its content and the diff.
+
+2. **Security scan**
+   Pass the changed file contents to the `security.code.review` tool.
+   Collect findings: severity (critical/high/medium/low), file, line, description.
+
+3. **Summarize**
+   Produce a JSON report:
+   ```json
+   {
+     "pr":       "&lt;PR identifier&gt;",
+     "files":    "&lt;count&gt;",
+     "findings": [ {"severity": "...", "file": "...", "line": "...", "desc": "..."} ],
+     "verdict":  "approve | request_changes | needs_discussion"
+   }
+   ```
+
+4. **Notify**
+   Use the `notification.send` tool to post the summary to the PR thread.
+
+## Notes
+- Do NOT hardcode which tool provides repository.read or security.code.review.
+  Use whatever was bound by CapMesh at resolve time.
+- If security.code.review returns 0 critical findings, verdict = approve.
+- If any critical finding, verdict = request_changes.</pre>
+
+<div class="output-box">$ capmesh skill build --directory ./pr-review-skill/
+
+  [OK] Kind: skill
+  [OK] SKILL.md found and readable (1.2 KB)
+  [OK] Provides: pr.review/v1
+  [OK] Requires: repository.read/v1, security.code.review/v1, notification.send/v1
+  [OK] All required capabilities have registered providers
+  [OK] Semver: 1.0.0
+  Digest: sha256:b4c2d9e7f1a3b8c5d0e6f2a9b3c7d1e8f4a0b5c9d2e7f3a1b6c4d8e2f7a5b0c3
+  Status: VALID
+
+$ capmesh skill push --file ./pr-review-skill/manifest.yaml
+
+  Pushing engineering/pr-review:1.0.0...
+  Indexed capabilities: pr.review/v1
+  SKILL.md stored (1.2 KB)
+  Requires: repository.read/v1, security.code.review/v1, notification.send/v1
+  Pushed engineering/pr-review:1.0.0
+
+  At bind time, CapMesh will resolve all 3 required capabilities independently.</div>
+
+<!-- ---- REST TOOL ---- -->
+<h3 id="build-rest">d) Build a REST Tool <span class="label label-rest">REST</span></h3>
+
+<p>A REST tool is any HTTP API that a consumer can call directly. CapMesh registers the base URL and any auth requirements so consumers can discover and use it without knowing the exact address.</p>
+
+<p><strong>Scenario:</strong> The security team uses SonarCloud for static analysis. They register it as a REST tool.</p>
+
+<pre># ./sonarcloud-scanner/manifest.yaml
+
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  name: sonarcloud-scanner
+  namespace: security
+  owner: security-engineering
+  version: "1.4.0"
+
+governance:
+  status: approved
+  visibility: organization
+  environment: [production, staging]
+
+interface:
+  protocol: rest
+  endpoint: https://sonarcloud.io/api          # the actual REST API base URL
+  auth:
+    type: bearer
+    env_var: SONARCLOUD_TOKEN                  # consumer must have this env var set
+
+provides:
+  - capability: security.static.analysis
+    contract: v1
+    description: Static code analysis via SonarCloud. POST /measures/component.
+
+  - capability: security.vulnerability.report
+    contract: v1
+    description: Fetch vulnerability report for a component.</pre>
+
+<div class="output-box">$ capmesh tool build --directory ./sonarcloud-scanner/
+
+  [OK] Kind: tool
+  [OK] Protocol: rest
+  [OK] Endpoint: https://sonarcloud.io/api (valid URL)
+  [OK] Auth type: bearer (env_var: SONARCLOUD_TOKEN)
+  [OK] Provides: security.static.analysis/v1, security.vulnerability.report/v1
+  [OK] Visibility: organization
+  [OK] Semver: 1.4.0
+  Digest: sha256:c9d2e7f3a1b6c4d8e2f7a5b0c3d9e6f1a4b8c2d5e9f0a3b7c1d4e8f2a6b9c3d7
+  Status: VALID
+
+$ capmesh tool push --file ./sonarcloud-scanner/manifest.yaml
+
+  Pushing security/sonarcloud-scanner:1.4.0...
+  Visibility: organization (acme-corp members only)
+  Indexed capabilities: security.static.analysis/v1, security.vulnerability.report/v1
+  Pushed security/sonarcloud-scanner:1.4.0</div>
+
+<!-- ============================================================ -->
+<h2 id="runtime-endpoints"><span class="section-num">5</span> Runtime API Endpoints -- What Providers Expose</h2>
+
+<p>CapMesh is a registry, not a proxy. When a consumer resolves a capability, it gets back a <em>binding</em> -- connection information for the provider. The consumer then calls the provider directly. CapMesh is never in the data path.</p>
+
+<p>The <strong>provider team</strong> runs the actual service. They just write a manifest.yaml to register it. CapMesh does not host it, proxy it, or relay traffic to it -- it simply tells consumers where to find it. This is exactly how DNS works.</p>
+
+<div class="card" style="margin: 20px 0;">
+    <h4>What each provider type exposes</h4>
+    <p style="margin-top:12px;">
+        <strong>A2A Agent:</strong> An HTTPS endpoint that the agent team deploys and operates. Implements the A2A protocol (POST task, GET status, streaming). CapMesh stores this URL and returns it in the binding. The consumer calls this URL directly using an A2A client.
+    </p>
+    <p>
+        Example: <code>https://security-agent.acme.com</code> -- the security team's server.
+    </p>
+    <p>
+        <strong>MCP Tool:</strong> An MCP server registered under a name in the MCP client configuration. CapMesh stores the server name. The consumer uses this server name when calling its MCP client library.
+    </p>
+    <p>
+        Example: <code>github-mcp</code> -- the platform team's MCP server, known to the MCP client.
+    </p>
+    <p>
+        <strong>REST Tool:</strong> A publicly reachable HTTP/HTTPS API base URL. CapMesh stores the URL and auth requirements. The consumer makes direct HTTP calls to this URL.
+    </p>
+    <p>
+        Example: <code>https://api.example.com/v1/scan</code> -- the vendor's API endpoint.
+    </p>
+    <p>
+        <strong>Skill:</strong> A SKILL.md file stored in the CapMesh registry. CapMesh returns the instructions AND resolves all tool dependencies separately. The consumer executes the skill using the resolved tool bindings.
+    </p>
+    <p>
+        Example: <code>SKILL.md</code> path in the registry -- the team's procedure document.
+    </p>
 </div>
 
-<h3>Step 2: Build and register</h3>
+<h3>What a binding looks like for each type</h3>
 
-<pre><code>$ capmesh agent build --directory ./my-agent/
-Valid agent manifest
-  Name:    security/crewai-security-reviewer
-  Version: 3.1.0
-  Digest:  sha256:3f9f55a43b3cf6fa...
+<p>MCP Tool binding:</p>
+<pre>{
+  "provider":  "tools/github-reader:2.3.1",
+  "protocol":  "mcp",
+  "connection": {
+    "server":    "github-mcp",
+    "tool_name": "read_file"
+  },
+  "trace_id":  "res_1a2b3c4d5e6f"
+}</pre>
 
-$ capmesh agent register --file ./my-agent/manifest.yaml
-Registered security/crewai-security-reviewer:3.1.0</code></pre>
+<p>A2A Agent binding:</p>
+<pre>{
+  "provider":  "security/crewai-security-reviewer:3.1.0",
+  "protocol":  "a2a",
+  "connection": {
+    "endpoint":  "https://crewai-security.acme.com",
+    "framework": "crewai"
+  },
+  "trace_id":  "res_8444e343826b"
+}</pre>
 
-<h3>Step 3: Agents discover and use capabilities</h3>
+<p>REST Tool binding:</p>
+<pre>{
+  "provider":  "security/sonarcloud-scanner:1.4.0",
+  "protocol":  "rest",
+  "connection": {
+    "endpoint":  "https://sonarcloud.io/api",
+    "auth": {
+      "type":    "bearer",
+      "env_var": "SONARCLOUD_TOKEN"
+    }
+  },
+  "trace_id":  "res_9c8b7a6d5e4f"
+}</pre>
 
-<pre><code># Natural language
-result = resolver.need("scan for security issues")
+<p>Skill binding (dual binding -- instructions + tool deps resolved separately):</p>
+<pre>{
+  "provider":  "engineering/pr-review:1.0.0",
+  "protocol":  "skill",
+  "connection": {
+    "instructions": "# PR Review Skill\n\n## Steps\n...",
+    "tool_bindings": [
+      {
+        "capability": "repository.read",
+        "provider":   "tools/github-reader:2.3.1",
+        "protocol":   "mcp",
+        "connection": { "server": "github-mcp", "tool_name": "read_file" }
+      },
+      {
+        "capability": "security.code.review",
+        "provider":   "security/crewai-security-reviewer:3.1.0",
+        "protocol":   "a2a",
+        "connection": { "endpoint": "https://crewai-security.acme.com" }
+      },
+      {
+        "capability": "notification.send",
+        "provider":   "comms/slack-notifier:4.0.2",
+        "protocol":   "mcp",
+        "connection": { "server": "slack-mcp", "tool_name": "post_message" }
+      }
+    ]
+  },
+  "trace_id": "res_3d2c1b0a9e8f"
+}</pre>
 
-# Or exact capability ID
+<!-- ============================================================ -->
+<h2 id="use-providers"><span class="section-num">6</span> Use Providers -- Resolve and Call</h2>
+
+<h3 id="use-python">a) Python SDK -- Resolve and Call</h3>
+
+<pre>"""
+Example: A CI pipeline that resolves a security scanner and runs it.
+The pipeline does NOT know which scanner will be returned.
+"""
+
+import httpx
+from capmesh import Resolver, CallerContext, ResolveRequest
+
+# Connect to CapMesh server
+resolver = Resolver(base_url="http://capmesh:8080")
+
+caller = CallerContext(
+    identity="ci-pipeline",
+    environment="production",
+    namespace="eng",
+)
+
+# --- Resolve a capability (exact ID) ---
 result = resolver.resolve(ResolveRequest(
     capability="security.code.review",
     contract="v1",
-    caller=CallerContext(identity="my-pipeline"),
+    caller=caller,
 ))
 
-# Use the binding
-print(result.binding.protocol)     # "a2a"
-print(result.binding.connection)   # {"endpoint": "https://crewai-security.example.com"}
-# Call the provider directly using A2A/MCP/REST protocol</code></pre>
+print(f"Provider:  {result.provider}")       # security/crewai-security-reviewer:3.1.0
+print(f"Protocol:  {result.protocol}")       # a2a
+print(f"Trace ID:  {result.trace_id}")       # res_8444e343826b
+print(f"Endpoint:  {result.binding.connection['endpoint']}")
+# https://crewai-security.acme.com
 
-<h3>Step 4: Everything is traced</h3>
+# --- Resolve a capability (natural language) ---
+binding = resolver.need("read files from a code repository")
+print(f"Provider:  {binding.provider}")      # tools/github-reader:2.3.1
+print(f"Protocol:  {binding.protocol}")      # mcp
+print(f"Server:    {binding.connection['server']}")  # github-mcp</pre>
 
-<pre><code>$ capmesh resolve security.code.review --trace
+<div class="output-box">Provider:  security/crewai-security-reviewer:3.1.0
+Protocol:  a2a
+Trace ID:  res_8444e343826b
+Endpoint:  https://crewai-security.acme.com
 
-Resolved security.code.review/v1
-  Provider:  security/crewai-security-reviewer:3.1.0
-  Protocol:  a2a
-  Trace:     res_8444e343826b
+Provider:  tools/github-reader:2.3.1
+Protocol:  mcp
+Server:    github-mcp</div>
 
-Resolution Trace
-  Candidates: 3
-    [PASS] security/crewai-security-reviewer:3.1.0
-    [PASS] security/langgraph-security-reviewer:2.4.0
-    [PASS] security/security-code-review-skill:1.2.0
-  Selected: crewai-security-reviewer:3.1.0 (highest semver)
-  Resolution: 16 ms</code></pre>
+<h3 id="use-http">b) Raw HTTP API -- Resolve and Return Binding</h3>
+
+<p>No SDK required. Any HTTP client works.</p>
+
+<pre>POST http://capmesh:8080/v1/resolve
+Content-Type: application/json
+
+{
+  "capability":  "security.code.review",
+  "contract":    "v1",
+  "caller": {
+    "identity":    "ci-pipeline",
+    "environment": "production",
+    "namespace":   "eng"
+  }
+}</pre>
+
+<p>Full response:</p>
+<pre>{
+  "status":    "resolved",
+  "trace_id":  "res_8444e343826b",
+  "capability": "security.code.review",
+  "contract":   "v1",
+  "provider":   "security/crewai-security-reviewer:3.1.0",
+  "protocol":   "a2a",
+  "binding": {
+    "connection": {
+      "endpoint":  "https://crewai-security.acme.com",
+      "framework": "crewai"
+    }
+  },
+  "resolution_ms": 14,
+  "selected_from": 3,
+  "candidates": [
+    { "provider": "security/crewai-security-reviewer:3.1.0",    "passed": true,  "reason": "selected (highest semver)" },
+    { "provider": "security/langgraph-security-reviewer:2.4.0", "passed": true,  "reason": "available but lower semver" },
+    { "provider": "security/code-review-skill:1.2.0",           "passed": true,  "reason": "available but lower semver" }
+  ]
+}</pre>
+
+<h3 id="use-binding">c) Using the Binding to Call the Actual Service</h3>
+
+<p>Once you have the binding, you call the provider directly. CapMesh is no longer involved.</p>
+
+<pre>import httpx
+import json
+from mcp import MCPClient
+from a2a import A2AClient
+
+def resolve_and_call(capability: str, payload: dict) -> dict:
+    """
+    Resolve a capability and call the provider.
+    Works regardless of which provider is returned.
+    """
+    # Step 1: resolve
+    resp = httpx.post("http://capmesh:8080/v1/resolve", json={
+        "capability": capability,
+        "contract":   "v1",
+        "caller": {"identity": "my-agent", "environment": "production"}
+    })
+    resp.raise_for_status()
+    result = resp.json()
+
+    protocol   = result["protocol"]
+    connection = result["binding"]["connection"]
+
+    # Step 2: call the provider directly
+    if protocol == "a2a":
+        client = A2AClient(base_url=connection["endpoint"])
+        return client.submit_task(payload)
+
+    elif protocol == "mcp":
+        client = MCPClient()
+        return client.call_tool(
+            server=connection["server"],
+            tool=connection.get("tool_name", "default"),
+            arguments=payload,
+        )
+
+    elif protocol == "rest":
+        token = os.environ.get(connection["auth"]["env_var"])
+        return httpx.post(
+            connection["endpoint"],
+            json=payload,
+            headers={"Authorization": f"Bearer {token}"},
+        ).json()
+
+    elif protocol == "skill":
+        instructions = connection["instructions"]
+        tool_bindings = connection["tool_bindings"]
+        # Execute the skill instructions using the bound tools
+        return execute_skill(instructions, tool_bindings, payload)
+
+    else:
+        raise ValueError(f"Unknown protocol: {protocol}")
+
+
+# Use it -- no hardcoded providers anywhere
+findings = resolve_and_call("security.code.review", {
+    "repo":   "acme-corp/backend-api",
+    "pr":     "1247",
+    "branch": "feature/auth-refactor"
+})</pre>
+
+<div class="output-box"># What the A2A agent at https://crewai-security.acme.com returned:
+{
+  "findings": [
+    {
+      "severity": "high",
+      "file":     "src/auth/token.py",
+      "line":     84,
+      "rule":     "SEC-JWT-001",
+      "desc":     "JWT token signed with HS256 using weak secret (len < 32)"
+    },
+    {
+      "severity": "medium",
+      "file":     "src/auth/session.py",
+      "line":     122,
+      "rule":     "SEC-SESS-003",
+      "desc":     "Session cookie missing HttpOnly and Secure flags"
+    }
+  ],
+  "verdict":   "request_changes",
+  "scanned_files": 14,
+  "duration_ms":   3240
+}</div>
 
 <!-- ============================================================ -->
-<h2 id="mcp-integration"><span class="section-num">5</span> MCP Server Integration</h2>
+<h2 id="backward-compat"><span class="section-num">7</span> Backward Compatibility -- Zero Code Changes to Providers</h2>
 
 <div class="callout success-box">
-    <strong>CapMesh does NOT replace MCP servers.</strong> It sits in front of them — telling agents <em>which</em> MCP server to use, based on capability, version, policy, and environment.
+    <strong>CapMesh requires NO changes to existing providers.</strong> If you have an agent running today, just write a manifest.yaml pointing at it. If you have an MCP server, just write a manifest.yaml with its server name. The provider never knows CapMesh exists.
 </div>
 
-<div class="comparison">
-    <div class="col">
-        <h4 class="bad">Today: MCP configs hardcoded</h4>
-<pre><code># Every agent has its own config
-mcp_config = {
-    "server": "github-mcp",   # hardcoded
-    "tool": "read_file"       # hardcoded
+<h3>Existing A2A Agent -- No Changes</h3>
+
+<p>You have a LangGraph agent deployed at <code>https://my-agent.acme.com</code>. It has been running for months. You want to make it discoverable through CapMesh.</p>
+
+<p><strong>What you do:</strong> Write one manifest.yaml. Push it. Done.</p>
+
+<pre># manifest.yaml -- the ONLY thing you need
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: agent
+  name: my-existing-langgraph-agent
+  namespace: ml
+  owner: ml-team
+  version: "1.0.0"
+  labels:
+    framework: langgraph              # metadata only
+
+governance:
+  status: approved
+  visibility: public
+  environment: [production]
+
+interface:
+  protocol: a2a
+  endpoint: https://my-agent.acme.com   # already running, no changes needed
+
+provides:
+  - capability: data.analysis
+    contract: v1
+    description: Analyze datasets and produce statistical summaries</pre>
+
+<div class="output-box">$ capmesh agent push --file ./manifest.yaml
+
+Pushed ml/my-existing-langgraph-agent:1.0.0
+  endpoint: https://my-agent.acme.com
+
+The agent is now discoverable.  No changes were made to the agent itself.
+No SDK installed on the agent.  No agent code touched.
+Consumers resolving data.analysis/v1 will be directed to https://my-agent.acme.com.</div>
+
+<h3>Existing MCP Server -- No Changes</h3>
+
+<p>You have an MCP server named <code>my-github-mcp</code> in your MCP client config. It has been running for months. You want to make it discoverable through CapMesh.</p>
+
+<pre># manifest.yaml
+metadata:
+  api_version: capmesh.io/v1alpha1
+  kind: tool
+  name: my-github-mcp-tool
+  namespace: tools
+  owner: platform-eng
+  version: "3.0.0"
+
+governance:
+  status: approved
+  visibility: public
+  environment: [production, staging]
+
+interface:
+  protocol: mcp
+  server: my-github-mcp             # the existing server name -- no changes needed
+  tools:
+    - read_file
+    - list_files
+
+provides:
+  - capability: repository.read
+    contract: v1
+    description: Read files from a GitHub repository via MCP</pre>
+
+<div class="output-box">$ capmesh tool push --file ./manifest.yaml
+
+Pushed tools/my-github-mcp-tool:3.0.0
+  server: my-github-mcp
+
+The MCP server is now discoverable via CapMesh.
+No changes to the MCP server.  No SDK.  No code modifications.
+Consumers resolving repository.read/v1 may receive server=my-github-mcp.</div>
+
+<h3>No SDK Required on the Provider Side</h3>
+
+<table>
+    <tr><th>Scenario</th><th>What provider team does</th><th>What changes in provider code</th></tr>
+    <tr><td>Register existing A2A agent</td><td>Write manifest.yaml, run capmesh agent push</td><td><strong>Nothing</strong></td></tr>
+    <tr><td>Register existing MCP server</td><td>Write manifest.yaml, run capmesh tool push</td><td><strong>Nothing</strong></td></tr>
+    <tr><td>Register existing REST API</td><td>Write manifest.yaml, run capmesh tool push</td><td><strong>Nothing</strong></td></tr>
+    <tr><td>Write a new skill</td><td>Write manifest.yaml + SKILL.md, run capmesh skill push</td><td><strong>Nothing</strong> (skill is docs, not code)</td></tr>
+    <tr><td>Upgrade to a new version</td><td>Bump version in manifest.yaml, push again</td><td><strong>Nothing</strong> (if the endpoint didn't change)</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="in-action"><span class="section-num">8</span> In Action -- Three Scenarios</h2>
+
+<!-- ---- SCENARIO A: PR REVIEW ---- -->
+<h3 id="scenario-pr">a) PR Review Pipeline</h3>
+
+<p>A CI pipeline resolves 4 capabilities, chains results, and produces a final report. The pipeline never hardcodes which tools to use.</p>
+
+<pre>"""pr_review_pipeline.py"""
+import httpx, json
+
+CAPMESH = "http://capmesh:8080"
+PR = {"repo": "acme-corp/backend-api", "pr": "1247", "branch": "feature/auth-refactor"}
+
+def resolve(capability):
+    r = httpx.post(f"{CAPMESH}/v1/resolve", json={
+        "capability": capability, "contract": "v1",
+        "caller": {"identity": "ci-pipeline", "environment": "production"}
+    })
+    r.raise_for_status()
+    return r.json()
+
+# Step 1: Find the repo reader
+repo_binding = resolve("repository.read")
+
+# Step 2: Find a security reviewer
+sec_binding = resolve("security.code.review")
+
+# Step 3: Find a code quality checker
+quality_binding = resolve("code.quality.check")
+
+# Step 4: Find a notification channel
+notify_binding = resolve("notification.send")
+
+print(json.dumps({
+    "repository.read":    repo_binding["provider"],
+    "security.review":    sec_binding["provider"],
+    "quality.check":      quality_binding["provider"],
+    "notification.send":  notify_binding["provider"],
+}, indent=2))
+
+# Now call each provider using its binding...
+# (abbreviated: see section 6c for full call logic)
+</pre>
+
+<div class="output-box">Resolution results:
+{
+  "repository.read":    "tools/github-reader:2.3.1",
+  "security.review":    "security/crewai-security-reviewer:3.1.0",
+  "quality.check":      "quality/sonarcloud-scanner:1.4.0",
+  "notification.send":  "comms/slack-notifier:4.0.2"
 }
-result = mcp_client.call(mcp_config)</code></pre>
-        <p>No central registry. No access control. No audit trail. Swapping = updating every agent's config.</p>
-    </div>
-    <div class="col">
-        <h4 class="good">With CapMesh: MCP servers registered</h4>
-<pre><code># Agent asks for capability
-binding = resolver.need("read a repository")
-# binding.connection = {
-#   "server": "gitlab-mcp",
-#   "tool_name": "read_file"
-# }
-result = mcp_client.call(
-    binding.connection["server"], args
-)</code></pre>
-        <p>Central registry. Policy enforced. Audited. Swap by registering a new version.</p>
-    </div>
-</div>
 
-<p>The MCP server keeps running unchanged. CapMesh adds:</p>
-<ul>
-    <li><strong>Discovery:</strong> Which MCP server provides <code>repository.read</code>?</li>
-    <li><strong>Versioning:</strong> Which version should I use?</li>
-    <li><strong>Policy:</strong> Am I allowed to use it?</li>
-    <li><strong>Audit:</strong> Who used which MCP server, when?</li>
-</ul>
+--- Step 1: Read diff (github-mcp / read_file) ---
+  Changed files: 14
+  Total lines changed: +312 / -87
+
+--- Step 2: Security review (https://crewai-security.acme.com) ---
+  Findings: 2
+    HIGH   src/auth/token.py:84     JWT weak secret (SEC-JWT-001)
+    MEDIUM src/auth/session.py:122  Cookie missing HttpOnly flag (SEC-SESS-003)
+
+--- Step 3: Quality check (https://sonarcloud.io/api) ---
+  Code smells: 3
+  Duplications: 1.2%
+  Coverage delta: -0.4%
+  Quality gate: PASSED
+
+--- Step 4: Notify (slack-mcp / post_message) ---
+  Posted to #pr-reviews
+  Message: "PR #1247 -- 2 security findings (1 HIGH). Quality gate PASSED."
+  Slack message ID: C04X8YNZP1T.1727081234.000400
+
+--- Final Report ---
+{
+  "pr":           "1247",
+  "repo":         "acme-corp/backend-api",
+  "status":       "request_changes",
+  "security":     {"findings": 2, "highest": "high"},
+  "quality_gate": "passed",
+  "notified":     true,
+  "trace_ids": [
+    "res_1a2b3c4d5e6f",
+    "res_8444e343826b",
+    "res_9c8b7a6d5e4f",
+    "res_2d3e4f5a6b7c"
+  ]
+}</div>
+
+<!-- ---- SCENARIO B: PROVIDER SWAP ---- -->
+<h3 id="scenario-swap">b) Provider Swap -- Zero Code Changes</h3>
+
+<p>The security team decides to replace Snyk with Semgrep. The pipeline code does not change. The swap takes 30 seconds.</p>
+
+<p><strong>Before:</strong></p>
+<div class="output-box">$ capmesh providers security.static.analysis --contract v1
+
+  RANK  NAME                          VERSION  STATUS    SELECTED
+  1     security/snyk-scanner         2.1.0    approved  YES (highest semver)
+  2     security/semgrep-scanner      1.8.0    approved  no
+
+  Pipeline resolves -> security/snyk-scanner:2.1.0</div>
+
+<p>The security team pushes a new version of Semgrep:</p>
+<pre>$ capmesh tool push --file ./semgrep-scanner/manifest.yaml
+# manifest.yaml has version: "3.0.0" -- higher than snyk:2.1.0</pre>
+
+<div class="output-box">$ capmesh tool push --file ./semgrep-scanner/manifest.yaml
+
+Pushed security/semgrep-scanner:3.0.0
+  Indexed: security.static.analysis/v1
+
+$ capmesh providers security.static.analysis --contract v1
+
+  RANK  NAME                          VERSION  STATUS    SELECTED
+  1     security/semgrep-scanner      3.0.0    approved  YES (highest semver)
+  2     security/snyk-scanner         2.1.0    approved  no
+  3     security/semgrep-scanner      1.8.0    approved  no</div>
+
+<p><strong>After:</strong> All pipelines that resolve <code>security.static.analysis/v1</code> now get Semgrep 3.0.0 automatically. No pipeline code changed.</p>
+
+<div class="output-box">$ capmesh resolve security.static.analysis --contract v1 --caller ci-pipeline --env production
+
+  Selected: security/semgrep-scanner:3.0.0
+  Protocol: rest
+  Endpoint: https://semgrep.dev/api/v1/scan
+  Trace:    res_4e5f6a7b8c9d
+
+  (Previously would have returned snyk-scanner:2.1.0)</div>
+
+<p>If the team needs to roll back, they deprecate Semgrep 3.0.0:</p>
+<pre>capmesh tool deprecate security/semgrep-scanner:3.0.0</pre>
+
+<div class="output-box">$ capmesh tool deprecate security/semgrep-scanner:3.0.0
+
+  Deprecated security/semgrep-scanner:3.0.0
+  Fallback: security/snyk-scanner:2.1.0 will be selected on next resolution.
+  Existing trace records preserved for audit.</div>
+
+<!-- ---- SCENARIO C: DYNAMIC DISCOVERY ---- -->
+<h3 id="scenario-dynamic">c) Dynamic Discovery -- Register at Runtime, Immediately Available</h3>
+
+<p>A new team just deployed a specialized code reviewer for Python at <code>https://python-reviewer.acme.com</code>. They register it at runtime. No restarts needed anywhere.</p>
+
+<pre>import httpx, json
+
+# Register via HTTP API -- no CLI needed
+manifest = {
+    "metadata": {
+        "api_version": "capmesh.io/v1alpha1",
+        "kind":        "agent",
+        "name":        "python-security-reviewer",
+        "namespace":   "security",
+        "owner":       "python-guild",
+        "version":     "1.0.0",
+        "labels":      {"framework": "strands", "language": "python"}
+    },
+    "governance": {
+        "status":      "approved",
+        "visibility":  "organization",
+        "environment": ["production", "staging"]
+    },
+    "interface": {
+        "protocol": "a2a",
+        "endpoint": "https://python-reviewer.acme.com"
+    },
+    "provides": [
+        {
+            "capability":  "security.code.review",
+            "contract":    "v1",
+            "description": "Python-specialized security review: type confusion, injection, async pitfalls"
+        }
+    ]
+}
+
+resp = httpx.post(
+    "http://capmesh:8080/v1/providers/register",
+    json=manifest,
+    headers={"Authorization": "Bearer $CAPMESH_TOKEN"}
+)
+print(resp.json())</pre>
+
+<div class="output-box"># Registration response (instant):
+{
+  "status":   "registered",
+  "provider": "security/python-security-reviewer:1.0.0",
+  "digest":   "sha256:e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6",
+  "capabilities_indexed": ["security.code.review/v1"],
+  "immediately_resolvable": true
+}
+
+# Immediately, any agent resolving security.code.review sees it:
+$ capmesh providers security.code.review --contract v1
+
+  RANK  NAME                                  VERSION  STATUS    SELECTED
+  1     security/crewai-security-reviewer     3.1.0    approved  YES (highest semver)
+  2     security/python-security-reviewer     1.0.0    approved  no  (would need 4.0.0 to win)
+  3     security/langgraph-security-reviewer  2.4.0    approved  no
+  4     security/code-review-skill            1.2.0    approved  no
+
+# Agents can discover the new Python reviewer without any restart or redeploy.
+# To make it the default, publish version 4.0.0 (higher than crewai:3.1.0).
+
+$ capmesh resolve security.code.review \
+    --constraint ">=1.0.0,<2.0.0" \
+    --caller python-pipeline \
+    --env production
+
+  Selected: security/python-security-reviewer:1.0.0
+  (version constraint forces this specific provider)</div>
 
 <!-- ============================================================ -->
-<h2 id="natural-language"><span class="section-num">6</span> Natural Language Discovery</h2>
-
-<p>Instead of memorizing capability IDs, agents describe what they need in plain language:</p>
-
-<pre><code># These all resolve to the right capability:
-resolver.need("read code from a repo")           # -> repository.read
-resolver.need("scan for security vulnerabilities") # -> security.scan
-resolver.need("notify the team")                  # -> notification.send
-resolver.need("create a bug ticket")              # -> issue.create
-resolver.need("deploy to production")             # -> deploy.execute
-resolver.need("query the database")               # -> data.query</code></pre>
-
-<h3>How it works</h3>
-
-<ol>
-    <li><strong>Exact match</strong> — if the query IS a capability ID, use it directly (score 1.0)</li>
-    <li><strong>Keyword match</strong> — decompose query and capability IDs into words, match them (score 0.8)</li>
-    <li><strong>Synonym expansion</strong> — "notify" matches "notification.send", "repo" matches "repository" (score 0.5)</li>
-    <li><strong>Description match</strong> — capabilities have descriptions that are also searched</li>
-</ol>
-
-<div class="callout">
-    <strong>No LLM required.</strong> Deterministic. Fast. Auditable. The final resolution still goes through the same policy, versioning, and trace pipeline.
-</div>
-
-<h3>Three levels of specificity</h3>
-
-<pre><code>resolver.resolve(request)    # Exact ID — strict, for production pipelines
-resolver.need("...")         # Natural language — flexible, for agent workflows
-resolver.discover("...")     # Explore — see ranked matches, for discovery</code></pre>
-
-<!-- ============================================================ -->
-<h2 id="governance"><span class="section-num">7</span> Security &amp; Governance</h2>
+<h2 id="governance"><span class="section-num">9</span> Governance -- Policies, Visibility, Approval, Audit</h2>
 
 <div class="callout warn-box">
-    <strong>"Dynamic loading means losing control"</strong> — This is backwards. Without CapMesh, developers hardcode whatever tools they want. With CapMesh, the platform team controls the registry. Dynamic loading WITH governance = control at scale.
+    <strong>Common myth: "Dynamic loading means losing control."</strong><br>
+    This is backwards. Without CapMesh, developers hardcode whatever tools they want -- no central control, no audit trail. With CapMesh, the platform team controls the registry. Nothing runs unless it has <code>status: approved</code>. Dynamic loading WITH governance = control at scale.
 </div>
 
-<h3>Approval Workflow</h3>
+<h3>Approval Lifecycle</h3>
 
-<pre><code>governance:
-  status: approved        # approved | deprecated | revoked
-</code></pre>
+<p>Every provider has a <code>status</code> in its governance block. Only <code>approved</code> providers are resolvable.</p>
 
-<ul>
-    <li><strong>approved</strong> — resolvable by agents</li>
-    <li><strong>deprecated</strong> — visible in search, excluded from resolution. Agents auto-fallback to next best.</li>
-    <li><strong>revoked</strong> — completely blocked. Audit trail preserved.</li>
-</ul>
+<pre>governance:
+  status: approved      # approved | deprecated | revoked</pre>
 
-<p>Nothing runs without explicit <code>status: approved</code>. The platform team controls the lifecycle.</p>
+<table>
+    <tr><th>Status</th><th>Resolvable</th><th>Visible in search</th><th>Audit trail</th><th>Use case</th></tr>
+    <tr><td><code>approved</code></td><td class="highlight2">Yes</td><td>Yes</td><td>Yes</td><td>Active providers in production</td></tr>
+    <tr><td><code>deprecated</code></td><td class="warn">No</td><td>Yes</td><td>Yes</td><td>Phased out -- agents auto-fall-back to next best</td></tr>
+    <tr><td><code>revoked</code></td><td class="warn">No</td><td>No</td><td>Yes</td><td>Security incident -- completely blocked</td></tr>
+</table>
+
+<p>Changing status via CLI:</p>
+<div class="output-box">$ capmesh tool deprecate security/snyk-scanner:2.1.0
+
+  Deprecated security/snyk-scanner:2.1.0
+  Next resolve of security.static.analysis will fall back to semgrep-scanner:3.0.0
+  Audit event recorded: deprecated by platform-eng at 2026-09-23T10:14:55Z
+
+$ capmesh agent revoke security/compromised-agent:1.0.0
+
+  Revoked security/compromised-agent:1.0.0
+  Reason: security incident (supply-chain compromise detected)
+  Provider immediately excluded from all future resolutions.
+  Audit trail preserved.  Digest: sha256:dead...beef</div>
 
 <h3>Environment Isolation</h3>
 
-<pre><code>governance:
-  environment: [production]     # staging caller CANNOT access this</code></pre>
+<pre>governance:
+  environment: [production]          # staging callers CANNOT resolve this</pre>
 
-<p>A staging agent resolving <code>database.query</code> will never get production database credentials. Automatic. No firewall rules needed.</p>
+<p>A staging CI pipeline resolving <code>database.write</code> will NEVER get the production database provider. Automatic. No extra firewall rules, no middleware.</p>
+
+<div class="output-box">$ capmesh resolve database.write --env staging --caller staging-pipeline
+
+  Step 5 -- Policy (env=staging)
+    [SKIP] data/prod-postgres-writer:3.0.0   (environment: [production] only -- BLOCKED)
+    [PASS] data/staging-postgres-writer:2.1.0 (environment: [production, staging] -- OK)
+
+  Selected: data/staging-postgres-writer:2.1.0</div>
 
 <h3>Visibility Controls</h3>
 
-<pre><code>governance:
-  visibility: private           # only the owner can resolve this
-  # or: organization            # only same-org callers
-  # or: public                  # anyone</code></pre>
+<pre>governance:
+  visibility: private           # only owner can resolve
+  # visibility: organization   # only callers in same org as owner
+  # visibility: public         # anyone</pre>
 
 <table>
     <tr><th>Level</th><th>Who can resolve</th><th>Use case</th></tr>
-    <tr><td><code>public</code></td><td>Anyone</td><td>Shared tools and utilities</td></tr>
-    <tr><td><code>organization</code></td><td>Same org as owner</td><td>Team-internal tools</td></tr>
-    <tr><td><code>private</code></td><td>Owner only</td><td>Security-sensitive scanners, secret tools</td></tr>
+    <tr><td><code>public</code></td><td>Any caller with valid environment</td><td>Shared platform tools</td></tr>
+    <tr><td><code>organization</code></td><td>Callers in the same org as the owner</td><td>Team-internal tools</td></tr>
+    <tr><td><code>private</code></td><td>Callers whose identity matches the owner</td><td>Security-sensitive scanners, licensed tools</td></tr>
 </table>
+
+<div class="output-box">$ capmesh resolve security.vulnerability.report \
+    --caller external-contractor \
+    --env staging
+
+  Step 5 -- Policy (visibility=organization)
+    [SKIP] security/sonarcloud-scanner:1.4.0
+           caller=external-contractor not in org acme-corp -- BLOCKED
+
+  Resolution: FAILED
+  Error: no approved provider satisfies the request for caller=external-contractor</div>
 
 <h3>Version Pinning</h3>
 
-<pre><code># Agent config: only use scanner v2.x
-result = resolver.resolve(ResolveRequest(
-    capability="security.scan",
-    contract="v1",
-    version_constraint=">=2.0,<3.0",    # pinned
-    caller=caller,
-))</code></pre>
+<p>Consumers can require a specific semver range, regardless of what version exists at the top of the registry.</p>
 
-<p>Even if v3.0.0 exists, the agent gets v2.x. Compliance team says "only scanner v2 in production"? One config line.</p>
+<pre>result = resolver.resolve(ResolveRequest(
+    capability="security.code.review",
+    contract="v1",
+    version_constraint=">=2.0.0,<3.0.0",    # only v2.x, even if v3 exists
+    caller=caller,
+))</pre>
+
+<div class="output-box">$ capmesh resolve security.code.review \
+    --contract v1 \
+    --constraint ">=2.0.0,<3.0.0" \
+    --env production
+
+  Step 6 -- Version constraint (>=2.0.0,<3.0.0)
+    [SKIP] security/crewai-security-reviewer:3.1.0    (3.1.0 >= 3.0.0 -- out of range)
+    [PASS] security/langgraph-security-reviewer:2.4.0 (2.4.0 satisfies >=2.0.0,<3.0.0)
+
+  Selected: security/langgraph-security-reviewer:2.4.0</div>
 
 <h3>Immutable Versions</h3>
 
-<p>Once published, a version's content can never be changed:</p>
+<p>Once an approved version is pushed, its digest is locked. You cannot push different content under the same version number.</p>
 
-<pre><code>$ capmesh agent register --file malicious-scanner.yaml
-Error: security/scanner:1.0.0 already exists with a different digest</code></pre>
+<div class="output-box">$ capmesh tool push --file ./tampered-scanner/manifest.yaml
+# manifest.yaml claims to be security/snyk-scanner:2.1.0 but has different content
 
-<p>Same version + different content = rejected. The only way to publish new content is a new version number. Tamper-proof by design.</p>
+Error: version conflict
+  security/snyk-scanner:2.1.0 already exists
+  Existing digest: sha256:a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
+  Submitted digest: sha256:deadbeef00000000000000000000000000000000000000000000000000000000
+
+  To publish new content, use a new version number: security/snyk-scanner:2.1.1</div>
 
 <h3>Full Audit Trail</h3>
 
-<pre><code>$ curl http://capmesh:8080/v1/resolutions/res_8444e343826b
+<p>Every resolution is stored in SQLite with full candidate list.</p>
 
-{
-  "trace_id": "res_8444e343826b",
-  "timestamp": "2026-09-24T14:32:15Z",
-  "caller": {"identity": "ci-pipeline", "environment": "production"},
-  "requested_capability": "security.code.review",
-  "candidates": [
-    {"provider": "security/crewai-reviewer", "version": "3.1.0", "passed": true},
-    {"provider": "security/langgraph-reviewer", "version": "2.4.0", "passed": true}
+<pre>GET http://capmesh:8080/v1/resolutions/res_8444e343826b</pre>
+
+<pre>{
+  "trace_id":              "res_8444e343826b",
+  "timestamp":             "2026-09-23T14:32:15Z",
+  "caller": {
+    "identity":    "ci-pipeline",
+    "environment": "production",
+    "namespace":   "eng"
+  },
+  "requested_capability":  "security.code.review",
+  "requested_contract":    "v1",
+  "version_constraint":    null,
+  "candidates_evaluated": [
+    {
+      "provider": "security/crewai-security-reviewer:3.1.0",
+      "passed":   true,
+      "reason":   "selected -- highest semver"
+    },
+    {
+      "provider": "security/langgraph-security-reviewer:2.4.0",
+      "passed":   true,
+      "reason":   "available -- lower semver"
+    },
+    {
+      "provider": "security/openai-reviewer:2.0.0",
+      "passed":   false,
+      "reason":   "governance.status=deprecated"
+    }
   ],
-  "selected_provider": "security/crewai-reviewer:3.1.0",
-  "outcome": "success",
-  "resolution_ms": 16.0
-}</code></pre>
+  "selected_provider":     "security/crewai-security-reviewer:3.1.0",
+  "protocol":              "a2a",
+  "outcome":               "success",
+  "resolution_ms":         16.0
+}</pre>
 
-<p>Every resolution: who asked, what was available, what was selected, why others were rejected. Compliance-ready.</p>
+<p>Query all resolutions for a capability in the last hour:</p>
+<pre>GET http://capmesh:8080/v1/resolutions?capability=security.code.review&amp;since=2026-09-23T13:00:00Z</pre>
+
+<div class="output-box">{
+  "total": 23,
+  "resolutions": [
+    { "trace_id": "res_8444e343826b", "caller": "ci-pipeline", "selected": "crewai:3.1.0", "outcome": "success", "ms": 16 },
+    { "trace_id": "res_7b3c2d1e0f9a", "caller": "sec-agent",   "selected": "crewai:3.1.0", "outcome": "success", "ms": 12 },
+    { "trace_id": "res_6a2b1c0d9e8f", "caller": "dev-sandbox", "selected": null,            "outcome": "failed",  "ms": 8,
+      "error": "no approved provider satisfies environment=dev" }
+  ]
+}</div>
 
 <!-- ============================================================ -->
-<h2 id="runtime"><span class="section-num">8</span> Runtime &amp; Production</h2>
+<h2 id="api-reference"><span class="section-num">10</span> API Reference</h2>
 
-<h3>Deployment</h3>
+<p>All endpoints are on <code>http://&lt;capmesh-host&gt;:8080</code>. Responses are JSON. The server returns standard HTTP status codes.</p>
 
-<pre><code># Option 1: CLI
-$ capmesh server start --port 8080
-
-# Option 2: Docker
-$ docker run -p 8080:8080 -v capmesh-data:/data capmesh-server
-
-# Option 3: Embedded (in your Python app)
-from capmesh.registry import Registry
-from capmesh.resolver import Resolver
-resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())</code></pre>
-
-<h3>How agents call CapMesh at runtime</h3>
-
-<pre><code>import httpx
-
-capmesh = httpx.Client(base_url="http://capmesh:8080")
-
-# Discover and bind — no tool imports needed
-resp = capmesh.post("/v1/resolve", json={
-    "capability": "security.code.review",
-    "contract": "v1",
-    "caller": {"identity": "my-agent", "environment": "production"}
-})
-binding = resp.json()
-
-# Call the provider using the returned binding
-if binding["protocol"] == "a2a":
-    result = a2a_client.call(binding["binding"]["endpoint"], task)
-elif binding["protocol"] == "mcp":
-    result = mcp_client.call(binding["binding"]["server"], task)
-elif binding["protocol"] == "rest":
-    result = httpx.post(binding["binding"]["endpoint"], json=payload)</code></pre>
-
-<h3>Live operations (no restart needed)</h3>
+<h3>Registry Endpoints</h3>
 
 <table>
-    <tr><th>Operation</th><th>How</th><th>Agent impact</th></tr>
-    <tr><td>Add new provider</td><td><code>POST /v1/providers/register</code></td><td>Discovered instantly on next resolve</td></tr>
-    <tr><td>Upgrade provider</td><td>Register higher version</td><td>Auto-selected (highest semver)</td></tr>
-    <tr><td>Swap provider</td><td>Register compatible replacement</td><td>Zero code changes</td></tr>
-    <tr><td>Deprecate provider</td><td>Set <code>status: deprecated</code></td><td>Auto-fallback to next best</td></tr>
-    <tr><td>Restrict access</td><td>Set <code>visibility: private</code></td><td>Unauthorized callers denied</td></tr>
-    <tr><td>Query audit</td><td><code>GET /v1/resolutions/{trace_id}</code></td><td>Full trace available</td></tr>
+    <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+    <tr><td><code>POST</code></td><td><code>/v1/providers/register</code></td><td>Register (push) a provider manifest</td></tr>
+    <tr><td><code>GET</code></td><td><code>/v1/providers/{namespace}/{name}</code></td><td>List all versions of a provider</td></tr>
+    <tr><td><code>GET</code></td><td><code>/v1/providers/{namespace}/{name}/{version}</code></td><td>Get a specific provider version</td></tr>
+    <tr><td><code>DELETE</code></td><td><code>/v1/providers/{namespace}/{name}/{version}</code></td><td>Revoke a provider version</td></tr>
+    <tr><td><code>PATCH</code></td><td><code>/v1/providers/{namespace}/{name}/{version}/status</code></td><td>Update governance status</td></tr>
+    <tr><td><code>GET</code></td><td><code>/v1/capabilities/{id}/providers</code></td><td>List providers for a capability</td></tr>
+    <tr><td><code>POST</code></td><td><code>/v1/search</code></td><td>Keyword / natural language search</td></tr>
 </table>
 
-<h3>Skill Dual Binding</h3>
+<h4>POST /v1/providers/register</h4>
+<p>Request body: full manifest YAML/JSON as described in section 4.</p>
+<pre>POST /v1/providers/register
+Content-Type: application/json
 
-<p>When a Skill is resolved, CapMesh performs two bindings:</p>
+{ ...manifest object... }</pre>
 
-<ol>
-    <li><strong>Load skill</strong> — SKILL.md instructions + assets</li>
-    <li><strong>Resolve tool dependencies</strong> — each <code>requires</code> capability is independently resolved to a tool</li>
-</ol>
-
-<pre><code># The skill says "I need repository.read" — not "I need GitHub"
-# CapMesh resolves the tools separately
+<pre># 201 Created
 {
-  "protocol": "skill",
-  "connection": {
-    "instructions": "SKILL.md",
-    "tool_bindings": [
-      {"capability": "repository.read", "provider": "gitlab-reader:2.0.0", "protocol": "mcp"},
-      {"capability": "repository.search", "provider": "gitlab-reader:2.0.0", "protocol": "mcp"}
-    ]
+  "status":   "registered",
+  "provider": "security/crewai-security-reviewer:3.1.0",
+  "digest":   "sha256:3f9f55a4...",
+  "capabilities_indexed": ["security.code.review/v1"],
+  "immediately_resolvable": true
+}
+
+# 409 Conflict (version exists with different digest)
+{
+  "error":    "version_conflict",
+  "message":  "security/crewai-security-reviewer:3.1.0 already exists with digest sha256:3f9f55a4...",
+  "hint":     "Bump the version number to publish new content"
+}</pre>
+
+<h4>GET /v1/capabilities/{id}/providers</h4>
+<pre>GET /v1/capabilities/security.code.review/providers?contract=v1&amp;status=approved</pre>
+
+<pre>{
+  "capability":  "security.code.review",
+  "contract":    "v1",
+  "providers": [
+    {
+      "namespace": "security",
+      "name":      "crewai-security-reviewer",
+      "version":   "3.1.0",
+      "protocol":  "a2a",
+      "status":    "approved",
+      "digest":    "sha256:3f9f55a4..."
+    },
+    {
+      "namespace": "security",
+      "name":      "langgraph-security-reviewer",
+      "version":   "2.4.0",
+      "protocol":  "a2a",
+      "status":    "approved",
+      "digest":    "sha256:9b2c71e8..."
+    }
+  ],
+  "total": 2
+}</pre>
+
+<h4>POST /v1/search</h4>
+<pre>POST /v1/search
+{
+  "query":   "security scan",
+  "type":    "tool",
+  "status":  "approved",
+  "limit":   10
+}</pre>
+
+<pre>{
+  "results": [
+    {
+      "namespace":    "security",
+      "name":         "sonarcloud-scanner",
+      "version":      "1.4.0",
+      "kind":         "tool",
+      "protocol":     "rest",
+      "capabilities": ["security.static.analysis/v1", "security.vulnerability.report/v1"],
+      "score":        0.91
+    }
+  ],
+  "total": 1
+}</pre>
+
+<h3>Resolution Endpoints</h3>
+
+<table>
+    <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+    <tr><td><code>POST</code></td><td><code>/v1/resolve</code></td><td>Resolve a capability to its best provider</td></tr>
+    <tr><td><code>POST</code></td><td><code>/v1/need</code></td><td>Natural language resolve ("notify the team")</td></tr>
+    <tr><td><code>POST</code></td><td><code>/v1/discover</code></td><td>Ranked list of matches for exploration</td></tr>
+    <tr><td><code>GET</code></td><td><code>/v1/resolutions/{trace_id}</code></td><td>Get full trace for one resolution</td></tr>
+    <tr><td><code>GET</code></td><td><code>/v1/resolutions</code></td><td>Query resolution history (filter by capability, caller, time)</td></tr>
+</table>
+
+<h4>POST /v1/resolve</h4>
+<pre>POST /v1/resolve
+{
+  "capability":          "security.code.review",
+  "contract":            "v1",
+  "version_constraint":  ">=2.0.0",
+  "caller": {
+    "identity":          "ci-pipeline",
+    "environment":       "production",
+    "namespace":         "eng"
   }
-}</code></pre>
+}</pre>
 
-<p>Same skill YAML works with GitHub, GitLab, or Bitbucket — no changes needed.</p>
+<pre># 200 OK
+{
+  "status":          "resolved",
+  "trace_id":        "res_8444e343826b",
+  "capability":      "security.code.review",
+  "contract":        "v1",
+  "provider":        "security/crewai-security-reviewer:3.1.0",
+  "protocol":        "a2a",
+  "binding": {
+    "connection": {
+      "endpoint":    "https://crewai-security.acme.com",
+      "framework":   "crewai"
+    }
+  },
+  "resolution_ms":   14,
+  "selected_from":   3,
+  "candidates": [
+    { "provider": "security/crewai-security-reviewer:3.1.0",    "passed": true,  "reason": "selected" },
+    { "provider": "security/langgraph-security-reviewer:2.4.0", "passed": true,  "reason": "lower semver" },
+    { "provider": "security/code-review-skill:1.2.0",           "passed": true,  "reason": "lower semver" }
+  ]
+}
+
+# 404 Not Found
+{
+  "status":  "failed",
+  "error":   "no_provider",
+  "message": "no approved provider satisfies security.code.review/v1 for env=dev",
+  "trace_id": "res_0000000000001"
+}</pre>
+
+<h4>POST /v1/need (natural language)</h4>
+<pre>POST /v1/need
+{
+  "query": "notify the team about a build failure",
+  "caller": {
+    "identity":    "ci-pipeline",
+    "environment": "production"
+  }
+}</pre>
+
+<pre>{
+  "status":        "resolved",
+  "matched_capability": "notification.send",
+  "match_score":   0.88,
+  "trace_id":      "res_2e3f4a5b6c7d",
+  "provider":      "comms/slack-notifier:4.0.2",
+  "protocol":      "mcp",
+  "binding": {
+    "connection": {
+      "server":    "slack-mcp",
+      "tool_name": "post_message"
+    }
+  },
+  "resolution_ms": 18
+}</pre>
+
+<h3>Artifact Endpoints</h3>
+
+<table>
+    <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+    <tr><td><code>POST</code></td><td><code>/v1/artifacts/publish</code></td><td>Publish a SKILL.md or other artifact</td></tr>
+    <tr><td><code>GET</code></td><td><code>/v1/artifacts/{ns}/{name}/{version}</code></td><td>Retrieve an artifact (e.g., SKILL.md content)</td></tr>
+    <tr><td><code>GET</code></td><td><code>/v1/artifacts/{ns}/{name}/{version}/digest</code></td><td>Get digest for verification</td></tr>
+</table>
+
+<h3>Server Endpoints</h3>
+
+<table>
+    <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+    <tr><td><code>GET</code></td><td><code>/healthz</code></td><td>Health check (returns 200 OK with {"status":"ok"})</td></tr>
+    <tr><td><code>GET</code></td><td><code>/v1/stats</code></td><td>Registry statistics (provider count, resolution count)</td></tr>
+    <tr><td><code>GET</code></td><td><code>/v1/capabilities</code></td><td>List all known capability IDs</td></tr>
+</table>
+
+<pre>GET /healthz
+
+{"status": "ok", "version": "0.9.0", "providers": 34, "resolutions_today": 1247}</pre>
+
+<pre>GET /v1/stats
+
+{
+  "providers": {
+    "total":      34,
+    "approved":   28,
+    "deprecated":  4,
+    "revoked":     2
+  },
+  "capabilities": {
+    "total_ids":  19
+  },
+  "resolutions": {
+    "total":      94321,
+    "today":      1247,
+    "avg_ms":     15.4,
+    "success_rate": 0.997
+  }
+}</pre>
 
 <!-- ============================================================ -->
-<h2 id="benefits"><span class="section-num">9</span> Benefits</h2>
-
-<div class="benefit-grid">
-    <div class="benefit-card">
-        <div class="icon">&#x1f50d;</div>
-        <h4>Dynamic Discovery</h4>
-        <p>Add providers at runtime. No restart. No redeploy.</p>
-    </div>
-    <div class="benefit-card">
-        <div class="icon">&#x1f504;</div>
-        <h4>Provider Swap</h4>
-        <p>Replace tools without code changes. Agents auto-discover.</p>
-    </div>
-    <div class="benefit-card">
-        <div class="icon">&#x1f310;</div>
-        <h4>Cross-Framework</h4>
-        <p>LangGraph, CrewAI, Strands — one registry, one API.</p>
-    </div>
-    <div class="benefit-card">
-        <div class="icon">&#x1f512;</div>
-        <h4>Policy &amp; Control</h4>
-        <p>Visibility, environment, approval — governance in YAML.</p>
-    </div>
-    <div class="benefit-card">
-        <div class="icon">&#x1f4cb;</div>
-        <h4>Audit Trail</h4>
-        <p>Every resolution traced. Who, what, when, why.</p>
-    </div>
-    <div class="benefit-card">
-        <div class="icon">&#x1f6e1;</div>
-        <h4>Immutability</h4>
-        <p>Published versions can't be tampered with. Digest verification.</p>
-    </div>
-    <div class="benefit-card">
-        <div class="icon">&#x1f4e6;</div>
-        <h4>Skill Portability</h4>
-        <p>Same skill works with any tool vendor. Dual binding.</p>
-    </div>
-    <div class="benefit-card">
-        <div class="icon">&#x1f4ac;</div>
-        <h4>Natural Language</h4>
-        <p>"Read a repo" instead of "repository.read/v1". No LLM needed.</p>
-    </div>
-    <div class="benefit-card">
-        <div class="icon">&#x1f433;</div>
-        <h4>Docker-like UX</h4>
-        <p>Build, push, pull, tag, inspect — familiar CLI.</p>
-    </div>
-</div>
-
-<!-- ============================================================ -->
-<h2 id="getting-started"><span class="section-num">10</span> Getting Started</h2>
+<h2 id="getting-started"><span class="section-num">11</span> Getting Started</h2>
 
 <h3>Install</h3>
-<pre><code>pip install capmesh
-pip install "capmesh[server]"   # for the registry server</code></pre>
+<pre>pip install capmesh
+pip install "capmesh[server]"       # for the registry server component</pre>
 
-<h3>Run the demo</h3>
-<pre><code>git clone https://github.com/capmesh/capmesh.git
+<h3>Start the server</h3>
+<pre>capmesh server start --port 8080</pre>
+
+<div class="output-box">CapMesh Registry Server v0.9.0
+  Listening: 127.0.0.1:8080
+  Database:  ./capmesh.db (new)
+
+[2026-09-23 09:00:01] INFO  Server ready</div>
+
+<h3>Register your first provider</h3>
+<pre># 1. Write a manifest.yaml (see section 4 for full examples)
+# 2. Build and push
+capmesh tool build --directory ./my-tool/
+capmesh tool push --file ./my-tool/manifest.yaml
+
+# 3. Verify
+capmesh tool inspect tools/my-tool:1.0.0</pre>
+
+<h3>Resolve your first capability</h3>
+<pre>capmesh resolve my.capability --caller test --env dev</pre>
+
+<h3>Run the full demo</h3>
+<pre>git clone https://github.com/capmesh/capmesh.git
 cd capmesh
 pip install -e ".[server,dev]"
 
-# Generate 34 providers and run the orchestrator
-python demo/registry/generate_providers.py
-python demo/app.py
+python demo/registry/generate_providers.py   # generates 34 sample providers
+python demo/app.py                           # runs the full orchestrator demo
 
-# Or step by step
-python demo/01_build.py            # validate manifests
-python demo/02_register.py         # register providers
-python demo/03_resolve.py          # resolve capabilities
+# Step-by-step demos
+python demo/01_build.py            # validate manifests, show digests
+python demo/02_register.py         # register all providers
+python demo/03_resolve.py          # resolve capabilities, show trace
 python demo/04_benefits.py         # WITH vs WITHOUT comparison
-python demo/05_production.py       # production architecture
-python demo/06_governance.py       # security & governance
-python demo/07_natural_language.py # natural language discovery</code></pre>
+python demo/05_production.py       # production HTTP API usage
+python demo/06_governance.py       # status, visibility, version pinning
+python demo/07_natural_language.py # resolver.need() demo</pre>
 
 <h3>Run tests</h3>
-<pre><code>pytest tests/ -v                           # 164 tests
-pytest tests/ -v --cov=capmesh             # with coverage (87%)</code></pre>
-
-<h3>API Reference</h3>
-<pre><code>POST   /v1/providers/register              # Register a provider
-GET    /v1/providers/{namespace}/{name}     # Get provider details
-GET    /v1/capabilities/{id}/providers      # List providers for capability
-POST   /v1/search                          # Keyword search
-POST   /v1/resolve                         # Resolve capability to provider
-GET    /v1/resolutions/{trace_id}          # Query resolution trace
-POST   /v1/artifacts/publish               # Publish artifact
-GET    /v1/artifacts/{ns}/{name}/{version} # Get artifact
-GET    /healthz                            # Health check</code></pre>
+<pre>pytest tests/ -v                           # 164 tests
+pytest tests/ -v --cov=capmesh             # with coverage (87%)</pre>
 
 <div class="callout success-box">
-    <strong>Open source. Apache 2.0.</strong> Contributions welcome at <a href="https://github.com/capmesh/capmesh">github.com/capmesh/capmesh</a>.
+    <strong>Open source. Apache 2.0.</strong><br>
+    Contributions welcome at <a href="https://github.com/capmesh/capmesh">github.com/capmesh/capmesh</a>.
 </div>
 
 <footer style="text-align: center; padding: 40px 0; color: var(--text-dim); border-top: 1px solid var(--border); margin-top: 60px;">
-    CapMesh &mdash; Service Discovery for the Agentic World<br>
+    CapMesh -- Service Discovery for the Agentic World<br>
     <a href="https://github.com/capmesh/capmesh">GitHub</a> &nbsp;|&nbsp; Apache 2.0 License
 </footer>
 
