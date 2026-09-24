@@ -1,63 +1,28 @@
 #!/usr/bin/env python3
-"""
-AWS Strands Agent using CapMesh for capability discovery.
-
-Strands agents discover tools via CapMesh instead of hardcoding.
-"""
+"""AWS Strands + CapMesh — discover MCP tools dynamically."""
 # pip install strands-agents capmesh
 
-# --- WITHOUT CapMesh (hardcoded) ---
-#
-# from strands import Agent
-# from strands.tools import MCPTool
-# agent = Agent(
-#     tools=[MCPTool("github-mcp")],  # HARDCODED MCP server
-# )
+import capmesh
 
-# --- WITH CapMesh ---
+mesh = capmesh.connect()
 
-from capmesh.resolver import Resolver
-from capmesh.registry import Registry
-from capmesh.policy import default_policy_engine
-from capmesh.models.resolution import CallerContext
+# Discover what's available
+results = mesh.discover("repository")
+print(f"Found {len(results)} capabilities matching 'repository':")
+for r in results:
+    print(f"  [{r.score:.1f}] {r.capability} — {r.reason}")
 
-resolver = Resolver(
-    registry=Registry(),
-    policy_engine=default_policy_engine(),
-)
-
-caller = CallerContext(identity="strands-orchestrator", environment="production")
+# Resolve an MCP tool
+repo = mesh.need("read repository", kind="tool", protocol="mcp")
 
 # Strands integration:
-#
 # from strands import Agent
-# from strands.tools import MCPTool, HTTPTool
+# from strands.tools import MCPTool
 #
-# # Resolve tools from CapMesh
-# repo = resolver.need("read a repository", caller=caller)
-# scan = resolver.need("security scan", caller=caller)
-#
-# # Build Strands tools from CapMesh bindings
-# tools = []
-# for binding in [repo, scan]:
-#     b = binding.binding
-#     if b.protocol == "mcp":
-#         tools.append(MCPTool(b.connection["server"]))
-#     elif b.protocol == "rest":
-#         tools.append(HTTPTool(b.connection["endpoint"]))
-#     elif b.protocol == "a2a":
-#         tools.append(A2ATool(b.connection["endpoint"]))
-#
-# agent = Agent(tools=tools)
-# result = agent("Review PR #42 for security issues")
+# tool = MCPTool(repo.binding.connection["server"])
+# agent = Agent(tools=[tool])
+# result = agent("Read the auth module from myorg/webapp")
 
-print("Strands + CapMesh Integration")
-for cap in ["read a repository", "security scan"]:
-    result = resolver.need(cap, caller=caller)
-    b = result.binding
-    print(f"  {cap:25s} -> {result.provider_name}:{result.provider_version}")
-    print(f"    Protocol: {b.protocol}")
-    print(f"    Connection: {b.connection}")
-print()
-print("  Strands agent tools are resolved dynamically.")
-print("  MCP servers, A2A agents, REST APIs — all discovered via CapMesh.")
+print(f"\nResolved: {repo.provider_name}:{repo.provider_version}")
+print(f"  Protocol: {repo.binding.protocol}")
+print(f"  Connection: {repo.binding.connection}")

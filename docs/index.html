@@ -203,19 +203,34 @@ agent   = SecurityAgent(endpoint=HARDCODED_URL)</pre>
     </div>
     <div class="col">
         <h4 class="good">With CapMesh</h4>
-<pre>from capmesh import Resolver
+<pre>import capmesh
 
-r = Resolver(base_url="http://capmesh:8080")
+mesh = capmesh.connect()
 
 # Consumers ask for WHAT, not WHO.
-repo    = r.need("read a repository")
-scanner = r.need("security vulnerability scan")
-agent   = r.need("security code review")
+repo    = mesh.need("read a repository")
+scanner = mesh.need("security vulnerability scan")
+agent   = mesh.need("security code review", kind="agent")
 
 # Swap provider?  One registry command.
 # Restrict access? One YAML field.
 # Audit trail?    Automatic.</pre>
     </div>
+</div>
+
+<div class="callout success-box" style="margin-top: 24px;">
+    <strong>Quick Start</strong>
+<pre style="margin-top: 12px; background: transparent; border: none; padding: 0;">import capmesh
+mesh = capmesh.connect()
+
+# Any type -- natural language
+result = mesh.need("security scan")
+
+# Only agents
+agent = mesh.need("security scan", kind="agent")
+
+# Only MCP tools
+tool = mesh.need("read repo", kind="tool", protocol="mcp")</pre>
 </div>
 
 <table>
@@ -665,7 +680,27 @@ CapMesh Registry Server v0.9.0
 <h4>capmesh resolve</h4>
 <p>Resolve a capability to its best provider right now, showing the full resolution trace.</p>
 
-<pre>capmesh resolve &lt;capability&gt; [--contract v1] [--caller identity] [--env production] [--constraint ">=2.0,&lt;3.0"] [--trace]</pre>
+<pre>capmesh resolve &lt;capability&gt; [--contract v1] [--caller identity] [--env production] [--constraint ">=2.0,&lt;3.0"] [--kind agent|tool|skill] [--protocol mcp|a2a|rest|skill] [-k] [-p] [--trace] [--json]</pre>
+
+<p>Examples:</p>
+<pre>capmesh resolve "security scan"
+capmesh resolve "security scan" --kind agent
+capmesh resolve "read a repo" --protocol mcp
+capmesh resolve security.code.review -k agent -p a2a
+capmesh resolve security.code.review --trace --json</pre>
+
+<p>Flags:</p>
+<table>
+    <tr><th>Flag</th><th>Short</th><th>Description</th></tr>
+    <tr><td><code>--kind</code></td><td><code>-k</code></td><td>Filter by provider kind: <code>agent</code> | <code>tool</code> | <code>skill</code></td></tr>
+    <tr><td><code>--protocol</code></td><td><code>-p</code></td><td>Filter by protocol: <code>mcp</code> | <code>a2a</code> | <code>rest</code> | <code>skill</code></td></tr>
+    <tr><td><code>--trace</code></td><td></td><td>Show full 9-step resolution trace</td></tr>
+    <tr><td><code>--json</code></td><td></td><td>Output result as JSON</td></tr>
+    <tr><td><code>--contract</code></td><td></td><td>Require a specific contract version (default: v1)</td></tr>
+    <tr><td><code>--constraint</code></td><td></td><td>Semver range filter, e.g. <code>">=2.0,&lt;3.0"</code></td></tr>
+    <tr><td><code>--caller</code></td><td></td><td>Caller identity for policy evaluation</td></tr>
+    <tr><td><code>--env</code></td><td></td><td>Caller environment for policy evaluation</td></tr>
+</table>
 
 <div class="output-box">$ capmesh resolve security.code.review \
     --contract v1 \
@@ -1147,24 +1182,13 @@ Example: A CI pipeline that resolves a security scanner and runs it.
 The pipeline does NOT know which scanner will be returned.
 """
 
-import httpx
-from capmesh import Resolver, CallerContext, ResolveRequest
+import capmesh
 
-# Connect to CapMesh server
-resolver = Resolver(base_url="http://capmesh:8080")
-
-caller = CallerContext(
-    identity="ci-pipeline",
-    environment="production",
-    namespace="eng",
-)
+# One-line setup
+mesh = capmesh.connect()
 
 # --- Resolve a capability (exact ID) ---
-result = resolver.resolve(ResolveRequest(
-    capability="security.code.review",
-    contract="v1",
-    caller=caller,
-))
+result = mesh.resolve("security.code.review")
 
 print(f"Provider:  {result.provider}")       # security/crewai-security-reviewer:3.1.0
 print(f"Protocol:  {result.protocol}")       # a2a
@@ -1173,10 +1197,24 @@ print(f"Endpoint:  {result.binding.connection['endpoint']}")
 # https://crewai-security.acme.com
 
 # --- Resolve a capability (natural language) ---
-binding = resolver.need("read files from a code repository")
+binding = mesh.need("read files from a code repository")
 print(f"Provider:  {binding.provider}")      # tools/github-reader:2.3.1
 print(f"Protocol:  {binding.protocol}")      # mcp
-print(f"Server:    {binding.connection['server']}")  # github-mcp</pre>
+print(f"Server:    {binding.connection['server']}")  # github-mcp
+
+# --- Filter by kind and/or protocol ---
+agent = mesh.need("security scan", kind="agent")
+tool  = mesh.need("read repo", kind="tool", protocol="mcp")
+print(f"Agent:  {agent.provider}")           # security/crewai-security-reviewer:3.1.0
+print(f"Tool:   {tool.provider}")            # tools/github-reader:2.3.1
+
+# --- Exact ID with filter ---
+result = mesh.resolve("security.code.review", kind="agent")
+
+# --- List all providers for a capability ---
+providers = mesh.providers("security.code.review")
+for p in providers:
+    print(f"  {p.provider} ({p.protocol})")</pre>
 
 <div class="output-box">Provider:  security/crewai-security-reviewer:3.1.0
 Protocol:  a2a
@@ -1185,7 +1223,10 @@ Endpoint:  https://crewai-security.acme.com
 
 Provider:  tools/github-reader:2.3.1
 Protocol:  mcp
-Server:    github-mcp</div>
+Server:    github-mcp
+
+Agent:     security/crewai-security-reviewer:3.1.0
+Tool:      tools/github-reader:2.3.1</div>
 
 <h3 id="use-http">b) Raw HTTP API -- Resolve and Return Binding</h3>
 
@@ -1321,7 +1362,7 @@ findings = resolve_and_call("security.code.review", {
 
 <div class="callout">
     <strong>The Pattern:</strong>
-    1. <code>resolver.need("what I need")</code> -- discover the capability<br>
+    1. <code>mesh.need("what I need")</code> -- discover the capability<br>
     2. Get back: protocol, endpoint/server, connection info<br>
     3. Wrap into your framework's tool type and use it
 </div>
@@ -1330,36 +1371,55 @@ findings = resolve_and_call("security.code.review", {
 
 <p>Before using a capability, agents need to find it. Three ways:</p>
 
-<pre><code># Natural language -- agent describes what it needs
-binding = resolver.need("read code from a repository")
-binding = resolver.need("scan for security vulnerabilities")
-binding = resolver.need("notify the team on slack")
+<pre><code>import capmesh
+mesh = capmesh.connect()
+
+# Natural language -- agent describes what it needs
+binding = mesh.need("read code from a repository")
+binding = mesh.need("scan for security vulnerabilities")
+binding = mesh.need("notify the team on slack")
+
+# With kind/protocol filters
+agent   = mesh.need("security scan", kind="agent")
+tool    = mesh.need("read a repo", kind="tool", protocol="mcp")
 
 # Exact ID -- when you know the capability name
-from capmesh.models.resolution import CallerContext, ResolveRequest
-binding = resolver.resolve(ResolveRequest(
-    capability="security.code.review", contract="v1",
-    caller=CallerContext(identity="my-agent"),
-))
+binding = mesh.resolve("security.code.review")
+binding = mesh.resolve("security.code.review", kind="agent")
 
 # Explore -- see what's available (ranked by relevance)
-results = resolver.discover("security")
+results = mesh.discover("security")
 # [
 #   {capability: "security.code.review", score: 0.9, reason: "substring match"},
 #   {capability: "security.scan",        score: 0.9, reason: "substring match"},
-# ]</code></pre>
+# ]
 
-<div class="output-box"># resolver.need("read code from a repository") returns:
+# List providers for a capability
+providers = mesh.providers("security.code.review")
+
+# Register a manifest
+mesh.register("manifest.yaml")
+
+# Search the registry
+results = mesh.search("security")</code></pre>
+
+<div class="output-box"># mesh.need("read code from a repository") returns:
 provider:   repository/gitlab-reader:2.0.0
 protocol:   mcp
 connection: {"server": "gitlab-mcp", "tool_name": "read_file"}
 trace_id:   res_8444e343826b
 
-# resolver.need("scan for security vulnerabilities") returns:
+# mesh.need("scan for security vulnerabilities") returns:
 provider:   security/crewai-reviewer:3.1.0
 protocol:   a2a
 connection: {"endpoint": "https://crewai-security.example.com"}
-trace_id:   res_b825e80e75d0</div>
+trace_id:   res_b825e80e75d0
+
+# mesh.need("security scan", kind="agent") returns:
+provider:   security/crewai-reviewer:3.1.0    (agents only)
+
+# mesh.need("read a repo", kind="tool", protocol="mcp") returns:
+provider:   tools/github-reader:2.3.1          (MCP tools only)</div>
 
 <h3>Step 2: What comes back -- the Binding</h3>
 
@@ -1380,16 +1440,14 @@ trace_id:   res_b825e80e75d0</div>
 
 <pre><code># pip install crewai capmesh
 from crewai import Agent, Task, Crew
-from capmesh.resolver import Resolver
-from capmesh.registry import Registry
-from capmesh.policy import default_policy_engine
+import capmesh
 
 # Connect to CapMesh once
-resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())
+mesh = capmesh.connect()
 
-# Discover capabilities
-repo = resolver.need("read a repository")
-scan = resolver.need("security scan")
+# Discover capabilities (optionally filter by kind/protocol)
+repo = mesh.need("read a repository", kind="tool", protocol="mcp")
+scan = mesh.need("security scan", kind="agent")
 
 # Build CrewAI tools from CapMesh bindings
 def make_crewai_tool(binding):
@@ -1427,17 +1485,13 @@ scan_tool = A2ATool(endpoint='https://crewai-security.example.com')
 <pre><code># pip install langgraph langchain capmesh
 from langchain_core.tools import tool
 from langgraph.graph import StateGraph
-from capmesh.resolver import Resolver
-from capmesh.registry import Registry
-from capmesh.policy import default_policy_engine
-from capmesh.models.resolution import CallerContext
+import capmesh
 
-resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())
-caller = CallerContext(identity="langgraph-pipeline", environment="production")
+mesh = capmesh.connect()
 
-# Resolve tools at graph build time
-repo_binding = resolver.need("read repository code", caller=caller)
-scan_binding = resolver.need("security review", caller=caller)
+# Resolve tools at graph build time (filter by kind/protocol as needed)
+repo_binding = mesh.need("read repository code", kind="tool", protocol="mcp")
+scan_binding = mesh.need("security review", kind="agent")
 
 # Create LangChain tools from bindings
 @tool
@@ -1473,22 +1527,18 @@ scan       -> security/crewai-reviewer:3.1.0 via A2A (endpoint: https://crewai-s
 <h4>AWS Strands</h4>
 
 <pre><code># pip install strands-agents capmesh
-from capmesh.resolver import Resolver
-from capmesh.registry import Registry
-from capmesh.policy import default_policy_engine
-from capmesh.models.resolution import CallerContext
+import capmesh
 
-resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())
-caller = CallerContext(identity="strands-agent", environment="production")
+mesh = capmesh.connect()
 
 # Discover what's available
-results = resolver.discover("repository")
+results = mesh.discover("repository")
 print(f"Found {len(results)} capabilities matching 'repository':")
 for r in results:
     print(f"  [{r.score:.1f}] {r.capability} -- {r.reason}")
 
-# Resolve the best one
-repo = resolver.need("read repository", caller=caller)
+# Resolve the best one (filter to MCP tools only)
+repo = mesh.need("read repository", kind="tool", protocol="mcp")
 
 # Build Strands agent
 # from strands import Agent
@@ -1515,15 +1565,13 @@ repo -> repository/gitlab-reader:2.0.0 via MCP
 <h4>Microsoft AutoGen</h4>
 
 <pre><code># pip install autogen-agentchat capmesh
-from capmesh.resolver import Resolver
-from capmesh.registry import Registry
-from capmesh.policy import default_policy_engine
+import capmesh
 
-resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())
+mesh = capmesh.connect()
 
 # Resolve and create tool functions
-def capmesh_tool(capability: str):
-    result = resolver.need(capability)
+def capmesh_tool(capability: str, kind: str = None, protocol: str = None):
+    result = mesh.need(capability, kind=kind, protocol=protocol)
     conn = result.binding.connection
 
     def tool_fn(**kwargs):
@@ -1537,9 +1585,9 @@ def capmesh_tool(capability: str):
     tool_fn.__name__ = capability.replace(".", "_")
     return tool_fn
 
-# Register tools with AutoGen
-read_repo = capmesh_tool("repository.read")
-scan_code = capmesh_tool("security.code.review")
+# Register tools with AutoGen (filter by kind/protocol to be explicit)
+read_repo = capmesh_tool("repository.read", kind="tool", protocol="mcp")
+scan_code = capmesh_tool("security.code.review", kind="agent")
 
 # from autogen import AssistantAgent, UserProxyAgent
 # assistant = AssistantAgent("reviewer", llm_config={...})
@@ -1551,15 +1599,16 @@ scan_code = capmesh_tool("security.code.review")
 <h4>Google Agent Development Kit (ADK)</h4>
 
 <pre><code># pip install google-adk capmesh
-from capmesh.resolver import Resolver
-from capmesh.registry import Registry
-from capmesh.policy import default_policy_engine
+import capmesh
 
-resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())
+mesh = capmesh.connect()
 
-# Resolve multiple capabilities at once
-capabilities = ["read a repo", "security scan", "send notification"]
-bindings = {cap: resolver.need(cap) for cap in capabilities}
+# Resolve multiple capabilities at once (with kind/protocol filters)
+bindings = {
+    "read a repo":       mesh.need("read a repo",       kind="tool", protocol="mcp"),
+    "security scan":     mesh.need("security scan",     kind="agent"),
+    "send notification": mesh.need("send notification", kind="tool"),
+}
 
 # Convert to Google ADK tools
 # from google.adk import Agent
@@ -1589,15 +1638,13 @@ send notification -> notifications/slack-notifier:1.0.0 (rest, endpoint: https:/
 <h4>OpenAI Agents SDK</h4>
 
 <pre><code># pip install openai capmesh
-from capmesh.resolver import Resolver
-from capmesh.registry import Registry
-from capmesh.policy import default_policy_engine
+import capmesh
 
-resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())
+mesh = capmesh.connect()
 
 # Generate OpenAI function schemas from CapMesh bindings
-def make_openai_tool(capability: str):
-    result = resolver.need(capability)
+def make_openai_tool(capability: str, kind: str = None, protocol: str = None):
+    result = mesh.need(capability, kind=kind, protocol=protocol)
     return {
         "type": "function",
         "function": {
@@ -1611,8 +1658,8 @@ def make_openai_tool(capability: str):
     }
 
 tools = [
-    make_openai_tool("repository.read"),
-    make_openai_tool("security.code.review"),
+    make_openai_tool("repository.read",      kind="tool", protocol="mcp"),
+    make_openai_tool("security.code.review", kind="agent"),
 ]
 
 # from openai import OpenAI
@@ -1631,15 +1678,13 @@ tools = [
 <h4>Microsoft Semantic Kernel</h4>
 
 <pre><code># pip install semantic-kernel capmesh
-from capmesh.resolver import Resolver
-from capmesh.registry import Registry
-from capmesh.policy import default_policy_engine
+import capmesh
 
-resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())
+mesh = capmesh.connect()
 
-# Resolve and create SK kernel functions
-repo = resolver.need("read a repository")
-scan = resolver.need("security scan")
+# Resolve and create SK kernel functions (filter by kind/protocol)
+repo = mesh.need("read a repository", kind="tool", protocol="mcp")
+scan = mesh.need("security scan", kind="agent")
 
 # import semantic_kernel as sk
 # from semantic_kernel.functions import kernel_function
@@ -1696,24 +1741,27 @@ resp, _ := http.Post("http://capmesh:8080/v1/resolve", "application/json", strin
 
 <p>CapMesh caches resolution results with a 30-second TTL. Cache auto-invalidates when providers are registered, deleted, or deprecated.</p>
 
-<pre><code># First call: hits SQLite (~16ms)
-resolver.need("security scan")
+<pre><code>import capmesh
+mesh = capmesh.connect()
+
+# First call: hits SQLite (~16ms)
+mesh.need("security scan")
 
 # Second call: cache hit (~0ms)
-resolver.need("security scan")
+mesh.need("security scan")
 
 # Register a new provider: cache auto-invalidates
-registry.register(new_scanner_manifest)
+mesh.register("new_scanner_manifest.yaml")
 
 # Next call: fresh resolution (~16ms), picks new provider
-resolver.need("security scan")
+mesh.need("security scan")
 
 # Check cache performance
-print(resolver.cache_stats)
+print(mesh.cache_stats)
 # {"hits": 142, "misses": 18, "size": 12}</code></pre>
 
 <div class="callout success-box">
-    <strong>Same pattern, every framework:</strong> Discover with <code>resolver.need()</code>, get back a binding (protocol + connection info), wrap it into your framework's tool type. The framework-specific code is 3-5 lines. Everything else -- discovery, versioning, policy, audit, caching -- is handled by CapMesh.
+    <strong>Same pattern, every framework:</strong> Discover with <code>mesh.need()</code>, get back a binding (protocol + connection info), wrap it into your framework's tool type. Optionally add <code>kind=</code> or <code>protocol=</code> to narrow results. The framework-specific code is 3-5 lines. Everything else -- discovery, versioning, policy, audit, caching -- is handled by CapMesh.
 </div>
 
 <!-- ============================================================ -->
@@ -2104,12 +2152,14 @@ $ capmesh agent revoke security/compromised-agent:1.0.0
 
 <p>Consumers can require a specific semver range, regardless of what version exists at the top of the registry.</p>
 
-<pre>result = resolver.resolve(ResolveRequest(
-    capability="security.code.review",
-    contract="v1",
-    version_constraint=">=2.0.0,<3.0.0",    # only v2.x, even if v3 exists
-    caller=caller,
-))</pre>
+<pre>import capmesh
+mesh = capmesh.connect()
+
+# Exact ID resolve with kind filter
+result = mesh.resolve("security.code.review", kind="agent")
+
+# For version constraints, use the CLI or raw HTTP API:
+# capmesh resolve security.code.review --constraint ">=2.0.0,<3.0.0" --kind agent</pre>
 
 <div class="output-box">$ capmesh resolve security.code.review \
     --contract v1 \
@@ -2447,7 +2497,7 @@ python demo/03_resolve.py          # resolve capabilities, show trace
 python demo/04_benefits.py         # WITH vs WITHOUT comparison
 python demo/05_production.py       # production HTTP API usage
 python demo/06_governance.py       # status, visibility, version pinning
-python demo/07_natural_language.py # resolver.need() demo</pre>
+python demo/07_natural_language.py # mesh.need() demo</pre>
 
 <h3>Run tests</h3>
 <pre>pytest tests/ -v                           # 164 tests
