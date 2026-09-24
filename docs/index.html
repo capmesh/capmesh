@@ -165,14 +165,16 @@
     <a class="toc-sub" href="#use-python">  a) Python SDK</a>
     <a class="toc-sub" href="#use-http">  b) Raw HTTP API</a>
     <a class="toc-sub" href="#use-binding">  c) Using the Binding to Call the Service</a>
-    <a href="#backward-compat">7. Backward Compatibility -- Zero Code Changes to Providers</a>
-    <a href="#in-action">8. In Action -- Three Scenarios</a>
+    <a href="#framework-integration">7. Framework Integration -- Discover and Use Capabilities</a>
+    <a class="toc-sub" href="#framework-integration">  CrewAI | LangGraph | Strands | AutoGen | Google ADK | OpenAI | Semantic Kernel | Raw HTTP</a>
+    <a href="#backward-compat">8. Backward Compatibility -- Zero Code Changes to Providers</a>
+    <a href="#in-action">9. In Action -- Three Scenarios</a>
     <a class="toc-sub" href="#scenario-pr">  a) PR Review Pipeline</a>
     <a class="toc-sub" href="#scenario-swap">  b) Provider Swap</a>
     <a class="toc-sub" href="#scenario-dynamic">  c) Dynamic Discovery</a>
-    <a href="#governance">9. Governance -- Policies, Visibility, Approval, Audit</a>
-    <a href="#api-reference">10. API Reference</a>
-    <a href="#getting-started">11. Getting Started</a>
+    <a href="#governance">10. Governance -- Policies, Visibility, Approval, Audit</a>
+    <a href="#api-reference">11. API Reference</a>
+    <a href="#getting-started">12. Getting Started</a>
 </div>
 
 <!-- ============================================================ -->
@@ -1313,7 +1315,409 @@ findings = resolve_and_call("security.code.review", {
 }</div>
 
 <!-- ============================================================ -->
-<h2 id="backward-compat"><span class="section-num">7</span> Backward Compatibility -- Zero Code Changes to Providers</h2>
+<h2 id="framework-integration"><span class="section-num">7</span> Framework Integration -- Discover and Use Capabilities</h2>
+
+<p>Every framework follows the same 3-step pattern. The only thing that changes is how you wrap the CapMesh binding into your framework's tool type.</p>
+
+<div class="callout">
+    <strong>The Pattern:</strong>
+    1. <code>resolver.need("what I need")</code> -- discover the capability<br>
+    2. Get back: protocol, endpoint/server, connection info<br>
+    3. Wrap into your framework's tool type and use it
+</div>
+
+<h3>Step 1: Discover -- How agents find capabilities</h3>
+
+<p>Before using a capability, agents need to find it. Three ways:</p>
+
+<pre><code># Natural language -- agent describes what it needs
+binding = resolver.need("read code from a repository")
+binding = resolver.need("scan for security vulnerabilities")
+binding = resolver.need("notify the team on slack")
+
+# Exact ID -- when you know the capability name
+from capmesh.models.resolution import CallerContext, ResolveRequest
+binding = resolver.resolve(ResolveRequest(
+    capability="security.code.review", contract="v1",
+    caller=CallerContext(identity="my-agent"),
+))
+
+# Explore -- see what's available (ranked by relevance)
+results = resolver.discover("security")
+# [
+#   {capability: "security.code.review", score: 0.9, reason: "substring match"},
+#   {capability: "security.scan",        score: 0.9, reason: "substring match"},
+# ]</code></pre>
+
+<div class="output-box"># resolver.need("read code from a repository") returns:
+provider:   repository/gitlab-reader:2.0.0
+protocol:   mcp
+connection: {"server": "gitlab-mcp", "tool_name": "read_file"}
+trace_id:   res_8444e343826b
+
+# resolver.need("scan for security vulnerabilities") returns:
+provider:   security/crewai-reviewer:3.1.0
+protocol:   a2a
+connection: {"endpoint": "https://crewai-security.example.com"}
+trace_id:   res_b825e80e75d0</div>
+
+<h3>Step 2: What comes back -- the Binding</h3>
+
+<p>Every resolution returns a binding with protocol-specific connection info:</p>
+
+<table>
+    <tr><th>Protocol</th><th>What you get back</th><th>How you call it</th></tr>
+    <tr><td><code>mcp</code></td><td><code>{"server": "github-mcp", "tool_name": "read_file"}</code></td><td>MCP client calls the server</td></tr>
+    <tr><td><code>a2a</code></td><td><code>{"endpoint": "https://agent.example.com"}</code></td><td>A2A client calls the endpoint</td></tr>
+    <tr><td><code>rest</code></td><td><code>{"endpoint": "https://api.example.com", "auth_type": "bearer"}</code></td><td>HTTP POST to the endpoint</td></tr>
+    <tr><td><code>skill</code></td><td><code>{"instructions": "SKILL.md", "tool_bindings": [...]}</code></td><td>Load instructions + use resolved tools</td></tr>
+</table>
+
+<h3>Step 3: Use it -- Framework Examples</h3>
+
+<!-- ---- CrewAI ---- -->
+<h4>CrewAI</h4>
+
+<pre><code># pip install crewai capmesh
+from crewai import Agent, Task, Crew
+from capmesh.resolver import Resolver
+from capmesh.registry import Registry
+from capmesh.policy import default_policy_engine
+
+# Connect to CapMesh once
+resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())
+
+# Discover capabilities
+repo = resolver.need("read a repository")
+scan = resolver.need("security scan")
+
+# Build CrewAI tools from CapMesh bindings
+def make_crewai_tool(binding):
+    if binding.binding.protocol == "mcp":
+        # from crewai_tools import MCPTool
+        # return MCPTool(server=binding.binding.connection["server"])
+        return f"MCPTool(server='{binding.binding.connection['server']}')"
+    elif binding.binding.protocol == "a2a":
+        # return A2ATool(endpoint=binding.binding.connection["endpoint"])
+        return f"A2ATool(endpoint='{binding.binding.connection['endpoint']}')"
+
+repo_tool = make_crewai_tool(repo)   # MCPTool resolved dynamically
+scan_tool = make_crewai_tool(scan)   # A2ATool resolved dynamically
+
+# Create CrewAI agent with dynamic tools
+# agent = Agent(
+#     role="Security Reviewer",
+#     goal="Find vulnerabilities in code",
+#     tools=[repo_tool, scan_tool],    # DYNAMIC -- not hardcoded
+# )
+# task = Task(description="Review PR #42", agent=agent)
+# crew = Crew(agents=[agent], tasks=[task])
+# result = crew.kickoff()</code></pre>
+
+<div class="output-box"># What CapMesh resolved for CrewAI:
+repo_tool = MCPTool(server='gitlab-mcp')           # was GitHub, now GitLab -- no code change
+scan_tool = A2ATool(endpoint='https://crewai-security.example.com')
+
+# CrewAI agent runs with these tools. If you register a new scanner
+# tomorrow, the agent gets it automatically on next run.</div>
+
+<!-- ---- LangGraph ---- -->
+<h4>LangGraph / LangChain</h4>
+
+<pre><code># pip install langgraph langchain capmesh
+from langchain_core.tools import tool
+from langgraph.graph import StateGraph
+from capmesh.resolver import Resolver
+from capmesh.registry import Registry
+from capmesh.policy import default_policy_engine
+from capmesh.models.resolution import CallerContext
+
+resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())
+caller = CallerContext(identity="langgraph-pipeline", environment="production")
+
+# Resolve tools at graph build time
+repo_binding = resolver.need("read repository code", caller=caller)
+scan_binding = resolver.need("security review", caller=caller)
+
+# Create LangChain tools from bindings
+@tool
+def read_repo(repo: str) -> dict:
+    """Read repository files. Provider resolved by CapMesh."""
+    conn = repo_binding.binding.connection
+    if repo_binding.binding.protocol == "mcp":
+        return mcp_client.call(conn["server"], {"repo": repo})
+    return httpx.get(conn["endpoint"], params={"repo": repo}).json()
+
+@tool
+def security_scan(files: list) -> dict:
+    """Run security scan. Provider resolved by CapMesh."""
+    conn = scan_binding.binding.connection
+    return a2a_client.submit_task(conn["endpoint"], {"files": files})
+
+# Build LangGraph
+# graph = StateGraph(ReviewState)
+# graph.add_node("read", read_repo)
+# graph.add_node("scan", security_scan)
+# graph.add_edge("read", "scan")
+# app = graph.compile()
+# result = app.invoke({"repo": "myorg/webapp"})</code></pre>
+
+<div class="output-box"># CapMesh resolved for LangGraph:
+read_repo  -> repository/gitlab-reader:2.0.0 via MCP (server: gitlab-mcp)
+scan       -> security/crewai-reviewer:3.1.0 via A2A (endpoint: https://crewai-security.example.com)
+
+# The graph definition never changes. Only the bindings change.
+# Register gitlab-reader:3.0.0 tomorrow -- graph auto-uses it on next build.</div>
+
+<!-- ---- Strands ---- -->
+<h4>AWS Strands</h4>
+
+<pre><code># pip install strands-agents capmesh
+from capmesh.resolver import Resolver
+from capmesh.registry import Registry
+from capmesh.policy import default_policy_engine
+from capmesh.models.resolution import CallerContext
+
+resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())
+caller = CallerContext(identity="strands-agent", environment="production")
+
+# Discover what's available
+results = resolver.discover("repository")
+print(f"Found {len(results)} capabilities matching 'repository':")
+for r in results:
+    print(f"  [{r.score:.1f}] {r.capability} -- {r.reason}")
+
+# Resolve the best one
+repo = resolver.need("read repository", caller=caller)
+
+# Build Strands agent
+# from strands import Agent
+# from strands.tools import MCPTool, HTTPTool
+#
+# if repo.binding.protocol == "mcp":
+#     tool = MCPTool(repo.binding.connection["server"])
+# elif repo.binding.protocol == "rest":
+#     tool = HTTPTool(repo.binding.connection["endpoint"])
+#
+# agent = Agent(tools=[tool])
+# result = agent("Read the auth module from myorg/webapp")</code></pre>
+
+<div class="output-box"># Discovery results:
+Found 2 capabilities matching 'repository':
+  [0.9] repository.read -- query is substring of 'repository.read'
+  [0.9] repository.search -- query is substring of 'repository.search'
+
+# Resolution:
+repo -> repository/gitlab-reader:2.0.0 via MCP
+  Connection: {"server": "gitlab-mcp", "tool_name": "read_file"}</div>
+
+<!-- ---- AutoGen ---- -->
+<h4>Microsoft AutoGen</h4>
+
+<pre><code># pip install autogen-agentchat capmesh
+from capmesh.resolver import Resolver
+from capmesh.registry import Registry
+from capmesh.policy import default_policy_engine
+
+resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())
+
+# Resolve and create tool functions
+def capmesh_tool(capability: str):
+    result = resolver.need(capability)
+    conn = result.binding.connection
+
+    def tool_fn(**kwargs):
+        if result.binding.protocol == "a2a":
+            return a2a_client.call(conn["endpoint"], kwargs)
+        elif result.binding.protocol == "mcp":
+            return mcp_client.call(conn["server"], kwargs)
+        elif result.binding.protocol == "rest":
+            return httpx.post(conn["endpoint"], json=kwargs).json()
+
+    tool_fn.__name__ = capability.replace(".", "_")
+    return tool_fn
+
+# Register tools with AutoGen
+read_repo = capmesh_tool("repository.read")
+scan_code = capmesh_tool("security.code.review")
+
+# from autogen import AssistantAgent, UserProxyAgent
+# assistant = AssistantAgent("reviewer", llm_config={...})
+# assistant.register_function({"read_repo": read_repo, "scan_code": scan_code})
+# user_proxy = UserProxyAgent("user")
+# user_proxy.initiate_chat(assistant, message="Review PR #42")</code></pre>
+
+<!-- ---- Google ADK ---- -->
+<h4>Google Agent Development Kit (ADK)</h4>
+
+<pre><code># pip install google-adk capmesh
+from capmesh.resolver import Resolver
+from capmesh.registry import Registry
+from capmesh.policy import default_policy_engine
+
+resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())
+
+# Resolve multiple capabilities at once
+capabilities = ["read a repo", "security scan", "send notification"]
+bindings = {cap: resolver.need(cap) for cap in capabilities}
+
+# Convert to Google ADK tools
+# from google.adk import Agent
+# from google.adk.tools import FunctionTool
+#
+# adk_tools = []
+# for cap, binding in bindings.items():
+#     conn = binding.binding.connection
+#     if binding.binding.protocol == "mcp":
+#         adk_tools.append(FunctionTool(name=cap,
+#             fn=lambda **kw: mcp_client.call(conn["server"], kw)))
+#     elif binding.binding.protocol == "a2a":
+#         adk_tools.append(FunctionTool(name=cap,
+#             fn=lambda **kw: a2a_client.call(conn["endpoint"], kw)))
+#
+# agent = Agent(model="gemini-2.0-flash", tools=adk_tools)
+# result = agent.run("Review this repository for security issues")</code></pre>
+
+<div class="output-box"># CapMesh resolved for Google ADK:
+read a repo       -> repository/gitlab-reader:2.0.0 (mcp, server: gitlab-mcp)
+security scan     -> security/crewai-reviewer:3.1.0 (a2a, endpoint: https://crewai-security.example.com)
+send notification -> notifications/slack-notifier:1.0.0 (rest, endpoint: https://slack.example.com/api)
+
+# Not locked to Google's tool ecosystem. Any MCP/A2A/REST provider works.</div>
+
+<!-- ---- OpenAI ---- -->
+<h4>OpenAI Agents SDK</h4>
+
+<pre><code># pip install openai capmesh
+from capmesh.resolver import Resolver
+from capmesh.registry import Registry
+from capmesh.policy import default_policy_engine
+
+resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())
+
+# Generate OpenAI function schemas from CapMesh bindings
+def make_openai_tool(capability: str):
+    result = resolver.need(capability)
+    return {
+        "type": "function",
+        "function": {
+            "name": capability.replace(".", "_").replace(" ", "_"),
+            "description": f"Resolved: {result.provider_name}:{result.provider_version} via {result.binding.protocol}",
+            "parameters": {"type": "object", "properties": {
+                "input": {"type": "string", "description": "Input data"}
+            }},
+        },
+        "_capmesh_binding": result.binding,  # keep binding for dispatch
+    }
+
+tools = [
+    make_openai_tool("repository.read"),
+    make_openai_tool("security.code.review"),
+]
+
+# from openai import OpenAI
+# client = OpenAI()
+# response = client.chat.completions.create(
+#     model="gpt-4",
+#     messages=[{"role": "user", "content": "Review PR #42"}],
+#     tools=tools,
+# )
+# # Dispatch tool calls to CapMesh-resolved providers
+# for call in response.choices[0].message.tool_calls:
+#     binding = tools[call.function.name]._capmesh_binding
+#     result = dispatch(binding, call.function.arguments)</code></pre>
+
+<!-- ---- Semantic Kernel ---- -->
+<h4>Microsoft Semantic Kernel</h4>
+
+<pre><code># pip install semantic-kernel capmesh
+from capmesh.resolver import Resolver
+from capmesh.registry import Registry
+from capmesh.policy import default_policy_engine
+
+resolver = Resolver(registry=Registry(), policy_engine=default_policy_engine())
+
+# Resolve and create SK kernel functions
+repo = resolver.need("read a repository")
+scan = resolver.need("security scan")
+
+# import semantic_kernel as sk
+# from semantic_kernel.functions import kernel_function
+#
+# kernel = sk.Kernel()
+#
+# @kernel_function(name="read_repo")
+# def read_repo(repo_name: str) -> str:
+#     conn = repo.binding.connection
+#     return mcp_client.call(conn["server"], {"repo": repo_name})
+#
+# @kernel_function(name="security_scan")
+# def security_scan(code: str) -> str:
+#     conn = scan.binding.connection
+#     return a2a_client.call(conn["endpoint"], {"code": code})
+#
+# kernel.add_function("tools", read_repo)
+# kernel.add_function("tools", security_scan)
+# result = await kernel.invoke("tools", "read_repo", repo_name="myorg/app")</code></pre>
+
+<!-- ---- Raw HTTP ---- -->
+<h4>Any Language -- Raw HTTP (Python, JavaScript, Go, Java, curl)</h4>
+
+<p>No SDK required. Just one HTTP call.</p>
+
+<pre><code># Python
+import httpx
+resp = httpx.post("http://capmesh:8080/v1/resolve", json={
+    "capability": "security.code.review", "contract": "v1",
+    "caller": {"identity": "my-app"}
+})
+binding = resp.json()
+# Use binding["binding"]["endpoint"] to call the provider</code></pre>
+
+<pre><code># curl
+curl -X POST http://capmesh:8080/v1/resolve \
+  -H "Content-Type: application/json" \
+  -d '{"capability":"security.code.review","contract":"v1","caller":{"identity":"my-app"}}'</code></pre>
+
+<pre><code>// JavaScript
+const resp = await fetch("http://capmesh:8080/v1/resolve", {
+  method: "POST",
+  headers: {"Content-Type": "application/json"},
+  body: JSON.stringify({capability: "security.code.review", contract: "v1", caller: {identity: "my-app"}})
+});
+const binding = await resp.json();
+// Use binding.binding.endpoint</code></pre>
+
+<pre><code>// Go
+body := `{"capability":"security.code.review","contract":"v1","caller":{"identity":"my-app"}}`
+resp, _ := http.Post("http://capmesh:8080/v1/resolve", "application/json", strings.NewReader(body))</code></pre>
+
+<h3>Caching -- Repeated Resolutions are Fast</h3>
+
+<p>CapMesh caches resolution results with a 30-second TTL. Cache auto-invalidates when providers are registered, deleted, or deprecated.</p>
+
+<pre><code># First call: hits SQLite (~16ms)
+resolver.need("security scan")
+
+# Second call: cache hit (~0ms)
+resolver.need("security scan")
+
+# Register a new provider: cache auto-invalidates
+registry.register(new_scanner_manifest)
+
+# Next call: fresh resolution (~16ms), picks new provider
+resolver.need("security scan")
+
+# Check cache performance
+print(resolver.cache_stats)
+# {"hits": 142, "misses": 18, "size": 12}</code></pre>
+
+<div class="callout success-box">
+    <strong>Same pattern, every framework:</strong> Discover with <code>resolver.need()</code>, get back a binding (protocol + connection info), wrap it into your framework's tool type. The framework-specific code is 3-5 lines. Everything else -- discovery, versioning, policy, audit, caching -- is handled by CapMesh.
+</div>
+
+<!-- ============================================================ -->
+<h2 id="backward-compat"><span class="section-num">8</span> Backward Compatibility -- Zero Code Changes to Providers</h2>
 
 <div class="callout success-box">
     <strong>CapMesh requires NO changes to existing providers.</strong> If you have an agent running today, just write a manifest.yaml pointing at it. If you have an MCP server, just write a manifest.yaml with its server name. The provider never knows CapMesh exists.
@@ -1410,7 +1814,7 @@ Consumers resolving repository.read/v1 may receive server=my-github-mcp.</div>
 </table>
 
 <!-- ============================================================ -->
-<h2 id="in-action"><span class="section-num">8</span> In Action -- Three Scenarios</h2>
+<h2 id="in-action"><span class="section-num">9</span> In Action -- Three Scenarios</h2>
 
 <!-- ---- SCENARIO A: PR REVIEW ---- -->
 <h3 id="scenario-pr">a) PR Review Pipeline</h3>
@@ -1621,7 +2025,7 @@ $ capmesh resolve security.code.review \
   (version constraint forces this specific provider)</div>
 
 <!-- ============================================================ -->
-<h2 id="governance"><span class="section-num">9</span> Governance -- Policies, Visibility, Approval, Audit</h2>
+<h2 id="governance"><span class="section-num">10</span> Governance -- Policies, Visibility, Approval, Audit</h2>
 
 <div class="callout warn-box">
     <strong>Common myth: "Dynamic loading means losing control."</strong><br>
@@ -1786,7 +2190,7 @@ Error: version conflict
 }</div>
 
 <!-- ============================================================ -->
-<h2 id="api-reference"><span class="section-num">10</span> API Reference</h2>
+<h2 id="api-reference"><span class="section-num">11</span> API Reference</h2>
 
 <p>All endpoints are on <code>http://&lt;capmesh-host&gt;:8080</code>. Responses are JSON. The server returns standard HTTP status codes.</p>
 
@@ -2001,7 +2405,7 @@ Content-Type: application/json
 }</pre>
 
 <!-- ============================================================ -->
-<h2 id="getting-started"><span class="section-num">11</span> Getting Started</h2>
+<h2 id="getting-started"><span class="section-num">12</span> Getting Started</h2>
 
 <h3>Install</h3>
 <pre>pip install capmesh
