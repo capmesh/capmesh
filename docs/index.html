@@ -174,7 +174,8 @@
     <a class="toc-sub" href="#scenario-dynamic">  c) Dynamic Discovery</a>
     <a href="#governance">10. Governance -- Policies, Visibility, Approval, Audit</a>
     <a href="#api-reference">11. API Reference</a>
-    <a href="#getting-started">12. Getting Started</a>
+    <a href="#mcp-server">12. CapMesh as MCP Server</a>
+    <a href="#getting-started">13. Getting Started</a>
 </div>
 
 <!-- ============================================================ -->
@@ -2565,7 +2566,101 @@ Content-Type: application/json
 }</pre>
 
 <!-- ============================================================ -->
-<h2 id="getting-started"><span class="section-num">12</span> Getting Started</h2>
+<h2 id="mcp-server"><span class="section-num">12</span> CapMesh as MCP Server</h2>
+
+<div class="callout success-box">
+    <strong>CapMesh is itself an MCP tool.</strong> Any agent that speaks MCP (Claude, Strands, LangGraph) can discover capabilities natively -- no SDK, no HTTP API, just MCP tool calls.
+</div>
+
+<p>This is the <strong>meta-tool</strong> pattern: add ONE MCP server to your agent, and it can discover every other tool, agent, and skill in the registry.</p>
+
+<h3>Setup</h3>
+
+<pre><code># Install
+pip install "capmesh[mcp-server]"
+
+# Run as MCP server (stdio transport)
+python -m capmesh.mcp</code></pre>
+
+<h3>Add to Claude Desktop</h3>
+
+<pre><code>// claude_desktop_config.json
+{
+  "mcpServers": {
+    "capmesh": {
+      "command": "python",
+      "args": ["-m", "capmesh.mcp"],
+      "env": {
+        "CAPMESH_ROOT": "/path/to/registry"
+      }
+    }
+  }
+}</code></pre>
+
+<h3>MCP Tools Exposed</h3>
+
+<table>
+    <tr><th>Tool</th><th>What it does</th><th>Example</th></tr>
+    <tr>
+        <td><code>resolve</code></td>
+        <td>Find the best provider for a capability</td>
+        <td><code>resolve("security scan", kind="agent")</code></td>
+    </tr>
+    <tr>
+        <td><code>discover</code></td>
+        <td>Explore available capabilities (ranked)</td>
+        <td><code>discover("repository")</code></td>
+    </tr>
+    <tr>
+        <td><code>search</code></td>
+        <td>Search registry by keyword</td>
+        <td><code>search("github")</code></td>
+    </tr>
+    <tr>
+        <td><code>providers</code></td>
+        <td>List all providers for a capability</td>
+        <td><code>providers("security.code.review")</code></td>
+    </tr>
+    <tr>
+        <td><code>register_provider</code></td>
+        <td>Register a new provider from YAML</td>
+        <td><code>register_provider(yaml_content)</code></td>
+    </tr>
+    <tr>
+        <td><code>inspect</code></td>
+        <td>View full manifest details</td>
+        <td><code>inspect("security", "reviewer", "3.1.0")</code></td>
+    </tr>
+</table>
+
+<h3>How It Works in Practice</h3>
+
+<pre><code># Claude conversation:
+User: "I need to review PR #42 for security issues. What tools do we have?"
+
+Claude: [calls capmesh.discover("security")]
+  -> security.code.review (score 0.9)
+  -> security.scan (score 0.9)
+
+Claude: [calls capmesh.resolve("security.code.review", kind="agent")]
+  -> security/crewai-reviewer:3.1.0 via A2A
+  -> endpoint: https://crewai-security.example.com
+
+Claude: "I found a security reviewer agent (CrewAI-based, v3.1.0).
+         I'll use it to review the PR."
+
+Claude: [calls the resolved A2A endpoint directly]
+  -> Returns security findings</code></pre>
+
+<div class="callout info-box">
+    <strong>Three access modes, one registry:</strong><br>
+    <code>mesh.need("...")</code> -- Python SDK (embedded)<br>
+    <code>POST /v1/resolve</code> -- HTTP API (server mode)<br>
+    <code>resolve("...")</code> -- MCP tool (native agent integration)
+</div>
+
+<!-- ============================================================ -->
+<h2 id="getting-started"><span class="section-num">13</span> Getting Started</h2>
 
 <h3>Install</h3>
 <pre>pip install capmesh

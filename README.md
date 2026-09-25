@@ -47,10 +47,12 @@ Swap tools, upgrade versions, restrict access — **zero code changes**.
 ## Install
 
 ```bash
-pip install capmesh                # CLI + library
-pip install "capmesh[server]"      # adds registry server
-pip install "capmesh[telemetry]"   # OpenTelemetry span export
-pip install "capmesh[semantic]"    # semantic search with local embeddings
+pip install capmesh                  # CLI + library
+pip install "capmesh[server]"        # FastAPI registry server
+pip install "capmesh[mcp-server]"    # expose CapMesh as an MCP server
+pip install "capmesh[telemetry]"     # OpenTelemetry span export
+pip install "capmesh[semantic]"      # semantic search with local embeddings
+pip install "capmesh[all]"           # everything
 ```
 
 ## Quick Start
@@ -139,6 +141,35 @@ curl -X POST http://localhost:8080/v1/resolve \
   -d '{"capability": "security.code.review", "contract": "v1",
        "caller": {"identity": "my-agent"}}'
 ```
+
+### 6. Or expose as MCP server
+
+CapMesh itself becomes an MCP tool. Any MCP-compatible agent (Claude, Strands, etc.) can discover capabilities natively:
+
+```bash
+# Run as MCP server (stdio)
+python -m capmesh.mcp
+```
+
+Add to Claude Desktop (`claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "capmesh": {
+      "command": "python",
+      "args": ["-m", "capmesh.mcp"]
+    }
+  }
+}
+```
+
+Now Claude can call these MCP tools directly:
+- `resolve("security scan", kind="agent")` — find the best provider
+- `discover("repository")` — explore available capabilities
+- `search("github")` — search the registry
+- `providers("security.code.review")` — list all providers
+- `register_provider(yaml)` — register a new provider
+- `inspect("security", "reviewer", "3.1.0")` — view manifest details
 
 Or Docker:
 ```bash
@@ -263,20 +294,30 @@ python demo/07_natural_language.py # natural language discovery
 ## Architecture
 
 ```
-Your Agent App              CapMesh Server              Providers
+Your Agent App              CapMesh                     Providers
 +------------------+       +------------------+       +------------------+
 |                  |       |                  |       |                  |
-|  mesh.need(...)  | ----> |  Registry        |       |  MCP servers     |
-|  mesh.resolve(.) |       |  Resolver        |       |  A2A agents      |
-|                  | <---- |  Policy Engine   |       |  REST APIs       |
-|  {protocol,      |       |  Trace Store     |       |  Skills          |
-|   connection}    |       |  Cache           |       |                  |
-+-----|------------+       +------------------+       +------------------+
-      |
+|  Three ways in:  |       |  Registry        |       |  MCP servers     |
+|                  |       |  Resolver        |       |  A2A agents      |
+|  Python SDK:     | ----> |  Policy Engine   |       |  REST APIs       |
+|  mesh.need(...)  |       |  Trace Store     |       |  Skills          |
+|                  |       |  Cache           |       |                  |
+|  HTTP API:       | ----> |                  |       +------------------+
+|  POST /v1/resolve|       +------------------+
+|                  |              |
+|  MCP tool:       | ----> (MCP server mode)
+|  resolve("...")  |
+|                  |
++-----|------------+
       v
   Call provider directly
   using returned binding
 ```
+
+**Three ways to access CapMesh:**
+- **Python SDK** — `mesh.need("security scan")` (embedded)
+- **HTTP API** — `POST /v1/resolve` (server mode)
+- **MCP tool** — any MCP-compatible agent calls CapMesh natively
 
 ## Contributing
 
